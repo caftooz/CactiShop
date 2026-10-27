@@ -6,4 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CactiShop.Contracts\CactiShop.Contracts.csproj" />
+  </ItemGroup>
+
 </Project>
