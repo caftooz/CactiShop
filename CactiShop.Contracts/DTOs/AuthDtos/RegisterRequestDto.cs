@@ -1,2 +1,2 @@
 ﻿namespace CactiShop.Contracts.DTOs.AuthDtos; 
-public record RegisterRequestDto(string Name, string Password, string ConfirmPassword);
+public record RegisterRequestDto(string Login, string Password, string ConfirmPassword);

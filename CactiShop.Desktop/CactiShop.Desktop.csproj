@@ -12,4 +12,16 @@
     <ProjectReference Include="..\CactiShop.Contracts\CactiShop.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="appsettings.json">
+    	<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+	
+  <ItemGroup>
+    <Folder Include="Resources\" />
+    <Folder Include="ViewModels\" />
+    <Folder Include="Converters\" />
+  </ItemGroup>
+
 </Project>
