@@ -1,7 +1,7 @@
 ﻿using CactiShop.Api.Data;
 using CactiShop.Api.Data.Models;
 using CactiShop.Api.Services;
-using CactiShop.Contracts.DTOs.AuthDtos;
+using CactiShop.Contracts.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

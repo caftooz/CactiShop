@@ -1,4 +1,4 @@
-﻿using CactiShop.Contracts.DTOs.AuthDtos;
+﻿using CactiShop.Contracts.Auth;
 
 namespace CactiShop.Api.Services
 {

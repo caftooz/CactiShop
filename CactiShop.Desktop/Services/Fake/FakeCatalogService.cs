@@ -1,72 +1,83 @@
-﻿using CactiShop.Contracts.DTOs;
+﻿using CactiShop.Contracts.Catalog;
 using CactiShop.Desktop.Services.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CactiShop.Desktop.Services.Fake;
 
 public class FakeCatalogService : ICatalogService
 {
-    private static readonly List<CategoryDto> Categories =
+    private static readonly List<CategoryDto> CATEGORIES =
     [
-        new(1,"Продукты" ),
-        new(2,"Канцелярия" ),
-        new(3,"Бытовая химия" )
+        new(1, "Продукты"),
+        new(2, "Канцелярия"),
+        new(3, "Бытовая химия"),
     ];
-
-    private static readonly List<ProductDetailsDto> Products =
+    private static readonly List<ProductDetailsDto> PRODUCTS =
     [
-        Product(1, "Молоко 1 л", 89.90m, 1, "milk.jpg", 4.6, 14, null, 12, true, "Пастеризованное, 3,2%."),
-        Product(2, "Хлеб бородинский", 64m, 1, "bread.jpg", 4.1, 5, null, 0, true, "Ржаной хлеб с кориандром."),
-        Product(3, "Ручка гелевая, синяя", 35m, 2, "pen.jpg", 3.8, 9, 10, 40, true, "Продаётся упаковкой."),
-        Product(4, "Тетрадь 96 листов", 120m, 2, null, null, 0, null, 25, true, "Клетка, твёрдая обложка."),
-        Product(5, "Средство для посуды", 249m, 3, "dish.jpg", 4.9, 31, null, 7, true, "Лимон, 900 мл."),
-        Product(6, "Стиральный порошок 6 кг", 899m, 3, "powder.jpg", 4.4, 18, null, 3, false, "Снят с продажи админом.")
+        NewProduct(1, "Молоко 1 л"              , 89.90m , 1 , "images/milk.jpg"   , 4.6  , 14 , 12 , true  , "Пастеризованное, 3,2%."),
+        NewProduct(2, "Хлеб бородинский"        , 64m    , 1 , "images/bread.jpg"  , 4.1  , 5  , 0  , true  , "Ржаной хлеб с кориандром."),
+        NewProduct(3, "Ручка гелевая, синяя"    , 35m    , 2 , "images/pen.jpg"    , 3.8  , 9  , 40 , true  , "Продаётся упаковкой."),
+        NewProduct(4, "Тетрадь 96 листов"       , 120m   , 2 ,  null               , null , 0  , 25 , true  , "Клетка, твёрдая обложка."),
+        NewProduct(5, "Средство для посуды"     , 249m   , 3 , "images/dish.jpg"   , 4.9  , 31 , 7  , true  , "Лимон, 900 мл."),
+        NewProduct(6, "Стиральный порошок 6 кг" , 899m   , 3 , "images/powder.jpg" , 4.4  , 18 , 3  , false , "Снят с продажи админом.")
     ];
 
     public async Task<IReadOnlyList<CategoryDto>> GetCategoriesAsync(CancellationToken ct = default)
     {
-        await Task.Delay(200, ct);
-        return Categories;
+        await Task.Delay(200, ct); // Имитация задержки
+        return CATEGORIES;
     }
 
-    public async Task<IReadOnlyList<ProductListItemDto>> GetProductsAsync(ProductFilterDto f, CancellationToken ct = default)
+    public async Task<IReadOnlyList<ProductListItemDto>> GetProductsAsync(ProductQuery query, CancellationToken ct = default)
     {
-        await Task.Delay(400, ct);
+        await Task.Delay(400, ct); // Имитация задержки
 
-        IEnumerable<ProductDetailsDto> q = Products;
-        if (!string.IsNullOrWhiteSpace(f.Search))
-            q = q.Where(p => p.Name.Contains(f.Search.Trim(), StringComparison.OrdinalIgnoreCase));
-        if (f.CategoryId is { } c)
-            q = q.Where(p => Categories.First(x => x.Name == p.CategoryName).Id == c);
-        if (f.MinPrice is { } min)
+        IEnumerable<ProductListItemDto> q = PRODUCTS.Select(p => p.Item);
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+            q = q.Where(p => p.Name.Contains(query.Search.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (query.CategoryId is {} c)
+            q = q.Where(p => CATEGORIES.First(x => x.Name == p.CategoryName).Id == c);
+        if (query.MinPrice is {} min)
             q = q.Where(p => p.Price >= min);
-        if (f.MaxPrice is { } max)
+        if (query.MaxPrice is {} max)
             q = q.Where(p => p.Price <= max);
 
-        return q.ToList<ProductListItemDto>();
+        return q.ToList();
     }
+
 
     public async Task<ProductDetailsDto> GetProductAsync(int id, CancellationToken ct = default)
     {
-        await Task.Delay(200, ct);
-        return Products.FirstOrDefault(p => p.Id == id)
-               ?? throw new Api.ApiException(404, "Товар не найден.");
+        await Task.Delay(200, ct); // Имитация задержки
+        return PRODUCTS.First(p => p.Item.Id == id);
     }
-
-    private static ProductDetailsDto Product(int id, string name, decimal price, int categoryId, string? image,
-        double? rating, int reviews, int? packSize, int stock, bool available, string description) => new(
-            id,
-            name,
-            price,
-            Categories.First(c => c.Id == categoryId).Name,
-            rating,
-            reviews,
-            packSize,
-            stock,
-            available,
-            available && stock > 0,
-            description
-        );
+    private static ProductDetailsDto NewProduct
+    (
+        int     id, 
+        string  name, 
+        decimal price, 
+        int     categoryId, 
+        string? imageUrl,
+        double? rating, 
+        int     reviews,
+        int     stock, 
+        bool    available, 
+        string  description
+    ) => new ProductDetailsDto
+         (
+             new ProductListItemDto
+             (
+                 id, 
+                 name, 
+                 price, 
+                 CATEGORIES.First(c => c.Id == categoryId).Name, 
+                 imageUrl, 
+                 rating, 
+                 reviews,
+                 stock, 
+                 available, 
+                 CanBuy: available && stock > 0
+             ),
+             description
+         );
 }

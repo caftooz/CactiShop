@@ -1,2 +1,2 @@
-﻿namespace CactiShop.Contracts.DTOs.AuthDtos;
+﻿namespace CactiShop.Contracts.Auth;
 public record AuthResponseDto(string AuthToken);
