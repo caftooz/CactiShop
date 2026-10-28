@@ -22,7 +22,7 @@ namespace CactiShop.Api.Controllers
         [HttpPost("register")]
         public async Task<ActionResult> Register(RegisterRequestDto dto) {
             if (dto.Password != dto.ConfirmPassword) return BadRequest("Пароли не совпадают");
-            if (await _context.Users.AnyAsync(u => u.Name == dto.Name)) 
+            if (await _context.Users.AnyAsync(u => u.Name == dto.Login)) 
                 return BadRequest("Пользователь с таким именем уже существует!");
 
             var roleId = _context.Roles.FirstOrDefault(r => r.Name == "User")?.Id ?? -1;
@@ -32,7 +32,7 @@ namespace CactiShop.Api.Controllers
 
             var user = new User
             {
-                Name = dto.Name,
+                Name = dto.Login,
                 RoleId = roleId,
                 PasswordSalt = salt,
                 PasswordHash = hash
@@ -45,7 +45,7 @@ namespace CactiShop.Api.Controllers
 
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto, TokenService tokens) {
-            var user = await _context.Users.FirstAsync(u => u.Name == dto.Name);
+            var user = await _context.Users.FirstAsync(u => u.Name == dto.Login);
 
             if (user == null) return Unauthorized("Неправильный логин или пароль");
 
@@ -59,7 +59,7 @@ namespace CactiShop.Api.Controllers
         public async Task<ActionResult<UserInfoDto>> Me() {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
-            return user == null ? Unauthorized() : Ok(new UserInfoDto(user.Name, user.Role.Name));
+            return user == null ? Unauthorized() : Ok(new UserInfoDto(user.Name, RoleService.GetUserRole(user.Role.Name)));
         }
     }
 }
