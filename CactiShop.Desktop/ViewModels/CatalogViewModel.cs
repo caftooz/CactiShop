@@ -1,0 +1,100 @@
+﻿using CactiShop.Contracts.Catalog;
+using CactiShop.Desktop.Services.Interfaces;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using System.Collections.ObjectModel;
+using System.Globalization;
+
+namespace CactiShop.Desktop.ViewModels;
+
+public partial class CatalogViewModel(
+    ICatalogService _catalogService, 
+    INavigationService _navigationService
+    ) : PageViewModel
+{
+    private static readonly CategoryDto AllCategories = new(0, "Все категории");
+    public ObservableCollection<ProductListItemDto> Products { get; } = [];
+    public ObservableCollection<CategoryDto> Categories { get; } = [];
+
+    [ObservableProperty]
+    private string _searchText = "";
+
+
+    [ObservableProperty]
+    private CategoryDto? _selectedCategory;
+
+    [ObservableProperty]
+    private string _minPriceText = "";
+
+    [ObservableProperty]
+    private string _maxPriceText = "";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsEmpty))]
+    private bool _isLoaded;
+    public bool IsEmpty => IsLoaded && Products.Count == 0;
+
+    public override Task OnNavigatedToAsync(object? parameter) => RunAsync(async () =>
+    {
+        var categories = await _catalogService.GetCategoriesAsync();
+        Categories.Clear();
+        Categories.Add(AllCategories);
+        foreach (var c in categories) Categories.Add(c);
+        SelectedCategory = AllCategories;
+
+        await LoadProductsAsync();
+    });
+
+    [RelayCommand]
+    private Task SearchAsync() => RunAsync(LoadProductsAsync);
+
+    [RelayCommand]
+    private Task ResetFiltersAsync()
+    {
+        SearchText = "";
+        MinPriceText = "";
+        MaxPriceText = "";
+        SelectedCategory = AllCategories;
+        return RunAsync(LoadProductsAsync);
+    }
+
+    [RelayCommand]
+    private Task OpenProductAsync(ProductListItemDto? product) => 
+        product is null ? Task.CompletedTask : _navigationService.NavigateToAsync<ProductDetailsViewModel>(product.Id);
+
+    private async Task LoadProductsAsync()
+    {
+        if (!TryReadPrice(MinPriceText, out var min) || !TryReadPrice(MaxPriceText, out var max))
+        {
+            ErrorMessage = "Цена должна быть числом, например 150 или 99,90.";
+            return;
+        }
+
+        var query = new ProductQuery(
+            Search: SearchText,
+            CategoryId: SelectedCategory is { Id: > 0 } c ? c.Id : null,
+            MinPrice: min,
+            MaxPrice: max);
+
+        var items = await _catalogService.GetProductsAsync(query);
+
+        Products.Clear();
+        foreach (var p in items) Products.Add(p);
+        IsLoaded = true;
+        OnPropertyChanged(nameof(IsEmpty));
+    }
+
+    private static bool TryReadPrice(string text, out decimal? value)
+    {
+        value = null;
+        if (string.IsNullOrWhiteSpace(text)) return true;
+
+        var normalized = text.Trim().Replace('.', ',');
+        if (decimal.TryParse(normalized, NumberStyles.Number, CultureInfo.GetCultureInfo("ru-RU"), out var d) && d >= 0)
+        {
+            value = d;
+            return true;
+        }
+        return false;
+    }
+}

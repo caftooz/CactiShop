@@ -4,9 +4,70 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CactiShop.Desktop"
+        xmlns:vm="clr-namespace:CactiShop.Desktop.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        WindowStartupLocation="CenterScreen"
+        Title="CactiShop" Height="720" Width="1100"
+        Background="{StaticResource BackgroundBrush}"
+        d:DataContext="{d:DesignInstance vm:MainViewModel}">
 
-    </Grid>
+    <DockPanel>
+        
+        <Border DockPanel.Dock="Top" 
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="0,0,0,1" Padding="16, 10">
+            <DockPanel>
+                
+                <TextBlock DockPanel.Dock="Left" 
+                           Text="CactiShop" 
+                           FontSize="20" FontWeight="Bold" 
+                           VerticalAlignment="Center" 
+                           Margin="0,0,24,0"/>
+
+                <StackPanel DockPanel.Dock="Right" 
+                            Orientation="Horizontal" 
+                            VerticalAlignment="Center">
+                    <TextBlock Text="{Binding UserTitle}"
+                               VerticalAlignment="Center"
+                               Margin="0,0,12,0"/>
+                    <Button Content="Войти" 
+                            Style="{StaticResource PrimaryButton}"
+                            Command="{Binding SignInCommand}"
+                            Visibility="{Binding IsGuest, Converter={StaticResource BoolToVisibility}}"/>
+                    <Button Content="Выйти" 
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding SignOutCommand}"
+                            Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVisibility}}"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <Button Content="Каталог" 
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding OpenCatalogCommand}"/>
+                    <Button Content="Корзина" 
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding OpenCartCommand}"
+                            Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVisibility}}"/>
+                    <Button Content="Избранное" 
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding OpenFavoritesCommand}"
+                            Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVisibility}}"/>
+                    <Button Content="Профиль" 
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding OpenProfileCommand}"
+                            Visibility="{Binding IsLoggedIn, Converter={StaticResource BoolToVisibility}}"/>
+                    <Button Content="Админка" 
+                            Style="{StaticResource GhostButton}"
+                            Command="{Binding OpenAdminCommand}"
+                            Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisibility}}"/>
+                </StackPanel>
+                
+            </DockPanel>
+        </Border>
+
+        <ContentControl Content="{Binding NavigationService.CurrentPage}" Focusable="False" />
+    
+    </DockPanel>
 </Window>
