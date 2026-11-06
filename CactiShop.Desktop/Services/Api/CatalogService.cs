@@ -18,8 +18,8 @@ public class CatalogService(ApiClient _apiClient) : ICatalogService
     private static string BuildQuery(ProductQuery f)
     {
         var parts = new List<string>();
-        if (!string.IsNullOrWhiteSpace(f.Search))
-            parts.Add("search=" + Uri.EscapeDataString(f.Search.Trim()));
+        if (!string.IsNullOrWhiteSpace(f.Query))
+            parts.Add("search=" + Uri.EscapeDataString(f.Query.Trim()));
         if (f.CategoryId is { } c)
             parts.Add("categoryId=" + c);
         if (f.MinPrice is { } min)
