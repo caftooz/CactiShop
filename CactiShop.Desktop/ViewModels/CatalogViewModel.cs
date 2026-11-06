@@ -71,7 +71,7 @@ public partial class CatalogViewModel(
         }
 
         var query = new ProductQuery(
-            Search: SearchText,
+            Query: SearchText,
             CategoryId: SelectedCategory is { Id: > 0 } c ? c.Id : null,
             MinPrice: min,
             MaxPrice: max);

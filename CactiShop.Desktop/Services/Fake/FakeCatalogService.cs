@@ -33,8 +33,8 @@ public class FakeCatalogService : ICatalogService
 
         IEnumerable<ProductListItemDto> q = PRODUCTS.Select(p => p.Item);
 
-        if (!string.IsNullOrWhiteSpace(query.Search))
-            q = q.Where(p => p.Name.Contains(query.Search.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (!string.IsNullOrWhiteSpace(query.Query))
+            q = q.Where(p => p.Name.Contains(query.Query.Trim(), StringComparison.OrdinalIgnoreCase));
         if (query.CategoryId is {} c)
             q = q.Where(p => CATEGORIES.First(x => x.Name == p.CategoryName).Id == c);
         if (query.MinPrice is {} min)

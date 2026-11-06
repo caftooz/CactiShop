@@ -5,7 +5,7 @@
 ///     WPF собирает их из полей ввода, API принимает из строки запроса: [FromQuery] ProductQuery query.
 /// </summary>
 public record ProductQuery(
-    string?  Search     = null,
+    string?  Query     = null,
     int?     CategoryId = null,
     decimal? MinPrice   = null,
     decimal? MaxPrice   = null);

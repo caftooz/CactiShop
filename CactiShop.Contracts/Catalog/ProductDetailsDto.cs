@@ -3,4 +3,4 @@
 /// <summary>
 ///     Товар для карточки: всё из списка плюс описание.
 /// </summary>
-public record ProductDetailsDto( ProductListItemDto Item, string Description);
+public record ProductDetailDto(ProductListItemDto Item, string Description);

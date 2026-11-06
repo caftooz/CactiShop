@@ -47,8 +47,11 @@ public class Product
     public int Quantity { get; set; }
     public string ImagePath { get; set; } = "";
     public double AvgRate { get; set; }
+    public bool IsActive { get; set; } = true;
 
     public Category Category { get; set; } = null!;
+    public ICollection<ProductReview> ProductReviews { get; set; } = [];
+    public ICollection<Order> Orders { get; set; } = [];
 }
 
 public class Order
