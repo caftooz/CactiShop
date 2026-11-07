@@ -14,7 +14,6 @@
             <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
             <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility" />
             <conv:NotNullToVisibilityConverter x:Key="NotNullToVisibility" />
-            <conv:ImageUrlConverter x:Key="ImageUrl" />
 
             <BitmapImage x:Key="NoImage" UriSource="pack://siteoforigin:,,,/Images/no-image.png" />
 
