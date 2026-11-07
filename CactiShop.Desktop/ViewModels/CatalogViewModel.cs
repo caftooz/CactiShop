@@ -1,4 +1,6 @@
 ﻿using CactiShop.Contracts.Catalog;
+using CactiShop.Desktop.Factories;
+using CactiShop.Desktop.Models;
 using CactiShop.Desktop.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -9,19 +11,20 @@ namespace CactiShop.Desktop.ViewModels;
 
 public partial class CatalogViewModel(
     ICatalogService _catalogService, 
-    INavigationService _navigationService
+    INavigationService _navigationService,
+    ProductSummaryViewModelFactory _factory
     ) : PageViewModel
 {
-    private static readonly CategoryDto AllCategories = new(0, "Все категории");
-    public ObservableCollection<ProductListItemDto> Products { get; } = [];
-    public ObservableCollection<CategoryDto> Categories { get; } = [];
+    private static readonly Category AllCategories = new(0, "Все категории");
+    public ObservableCollection<ProductSummaryViewModel> Products { get; } = new();
+    public ObservableCollection<Category> Categories { get; } = [];
 
     [ObservableProperty]
     private string _searchText = "";
 
 
     [ObservableProperty]
-    private CategoryDto? _selectedCategory;
+    private Category? _selectedCategory;
 
     [ObservableProperty]
     private string _minPriceText = "";
@@ -58,10 +61,6 @@ public partial class CatalogViewModel(
         return RunAsync(LoadProductsAsync);
     }
 
-    [RelayCommand]
-    private Task OpenProductAsync(ProductListItemDto? product) => 
-        product is null ? Task.CompletedTask : _navigationService.NavigateToAsync<ProductDetailsViewModel>(product.Id);
-
     private async Task LoadProductsAsync()
     {
         if (!TryReadPrice(MinPriceText, out var min) || !TryReadPrice(MaxPriceText, out var max))
@@ -76,10 +75,12 @@ public partial class CatalogViewModel(
             MinPrice: min,
             MaxPrice: max);
 
-        var items = await _catalogService.GetProductsAsync(query);
+        var items = await _catalogService.GetCatalogAsync(query);
 
         Products.Clear();
-        foreach (var p in items) Products.Add(p);
+        foreach (var p in items) 
+            Products.Add(_factory.Create(p));
+
         IsLoaded = true;
         OnPropertyChanged(nameof(IsEmpty));
     }

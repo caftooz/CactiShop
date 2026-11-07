@@ -71,24 +71,23 @@
                     <DataTemplate>
                         <Button Style="{StaticResource CardButton}" Width="220"
                                 Margin="0,0,12,12"
-                                Command="{Binding DataContext.OpenProductCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                CommandParameter="{Binding}">
+                                Command="{Binding OpenProductCommand}">
                             <StackPanel>
                                 <Grid Height="140" Margin="0,0,0,10">
-                                    <Image Source="{Binding ImageUrl, Converter={StaticResource ImageUrl}}"
+                                    <Image Source="{Binding Image}"
                                            Stretch="Uniform"/>
                                 </Grid>
                                 <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
                                 <TextBlock Text="{Binding CategoryName}" Style="{StaticResource MutedText}" Margin="0,2,0,8"/>
                                 <DockPanel>
                                     <TextBlock DockPanel.Dock="Right" Style="{StaticResource MutedText}" VerticalAlignment="Center"
-                                               Text="{Binding AverageRating, StringFormat='★ {0:0.0}', TargetNullValue='Нет оценок'}"/>
-                                    <TextBlock FontSize="16" FontWeight="Bold" Text="{Binding Price, StringFormat='{}{0:N2} ₽'}" />
+                                               Text="{Binding AvgRatingText}"/>
+                                    <TextBlock FontSize="16" FontWeight="Bold" Text="{Binding PriceText}" />
                                 </DockPanel>
-                                <Border Style="{StaticResource DangerBadge}" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                <!--<Border Style="{StaticResource DangerBadge}" HorizontalAlignment="Left" Margin="0,8,0,0"
                                         Visibility="{Binding CanBuy, Converter={StaticResource InverseBoolToVisibility}}">
                                     <TextBlock Text="Нет в наличии" Foreground="{StaticResource DangerBrush}" FontSize="12" />
-                                </Border>
+                                </Border>-->
                             </StackPanel>
                         </Button>
                     </DataTemplate>
