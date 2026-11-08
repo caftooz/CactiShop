@@ -23,14 +23,17 @@ public partial class ProductDetailsViewModel(
         var model = await _catalogService.GetProductAsync(id);
         HasModel = model != null;
 
-        Name = model.Name;
-        CategoryName = model.CategoryName;
-        PriceText = $"{model.Price:N0} ₽";
-        AvgRatingText = model.AvgRating == null ? "Нет оценок" : $"★ {model.AvgRating:0.0}";
-        Description = model.Description;
+        if (model is not null)
+        {
+            Name = model.Name;
+            CategoryName = model.CategoryName;
+            PriceText = $"{model.Price:N0} ₽";
+            AvgRatingText = model.AvgRating == null ? "Нет оценок" : $"★ {model.AvgRating:0.0}";
+            Description = model.Description;
+        }
 
 
-        Image = _imageService.GetImage(model.ImageUrl);
+        Image = _imageService.GetImage(model?.ImageUrl);
     });
 
     [ObservableProperty]
@@ -49,7 +52,7 @@ public partial class ProductDetailsViewModel(
     private string _description;
 
     [ObservableProperty]
-    public BitmapImage _image;
+    private BitmapImage _image;
 
     [RelayCommand]
     private void GoBack() => _navigationService.GoBack();

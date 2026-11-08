@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CactiShop.Api.Controllers;
 
 [ApiController]
+[Authorize]
 public class CartController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -68,6 +69,5 @@ public class CartController : ControllerBase
         return NoContent();
     }
 
-    [Authorize]
-    public int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 }

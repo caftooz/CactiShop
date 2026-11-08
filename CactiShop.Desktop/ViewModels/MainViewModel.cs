@@ -35,7 +35,7 @@ public partial class MainViewModel : ObservableObject
 
 
     [RelayCommand]
-    private Task OpenCatalogAsync() => NavigationService.NavigateToAsync<CatalogViewModel>();
+    private Task OpenCatalogAsync() => NavigationService.NavigateToAsync<CatalogViewModel>(clearHistory: true);
 
     [RelayCommand]
     private void OpenCart() => _dialogService.ShowInfo("Корзина");

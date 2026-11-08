@@ -52,15 +52,14 @@ public partial class App : Application
         }
         else
         {
-            var baseUrl = apiOptions.BaseUrl ?? "https://localhost:5001/";
             services.AddHttpClient<ApiClient>(http =>
             {
-                http.BaseAddress = new Uri(baseUrl);
+                http.BaseAddress = new Uri(apiOptions.BaseUrl);
                 http.Timeout = TimeSpan.FromSeconds(15);
             });
             services.AddTransient<ICatalogService, CatalogService>();
             services.AddTransient<IAuthService, AuthService>();
-            services.AddSingleton<IImageService>(new ImageService(new Uri(baseUrl)));
+            services.AddSingleton<IImageService>(new ImageService(new Uri(apiOptions.BaseUrl)));
         }
 
         // ViewModels
