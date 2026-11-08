@@ -1,4 +1,4 @@
-﻿namespace CactiShop.Api.Data.Models;
+namespace CactiShop.Api.Data.Models;
 
 public class User
 {
