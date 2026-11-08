@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using CactiShop.Contracts;
 using CactiShop.Contracts.Catalog;
 using CactiShop.Desktop.Models;

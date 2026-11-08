@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Threading;
 using CactiShop.Desktop.Factories;
 using CactiShop.Desktop.Services;

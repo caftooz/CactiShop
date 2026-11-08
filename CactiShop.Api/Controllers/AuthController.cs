@@ -1,9 +1,9 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using CactiShop.Api.Data;
 using CactiShop.Api.Data.Models;
 using CactiShop.Api.Services;
-using CactiShop.Contracts.Auth;
 using CactiShop.Contracts;
+using CactiShop.Contracts.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

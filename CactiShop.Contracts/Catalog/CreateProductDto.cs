@@ -1,4 +1,4 @@
-namespace CactiShop.Contracts.Catalog;
+﻿namespace CactiShop.Contracts.Catalog;
 
 public record CreateProductDto(
     string Name,
