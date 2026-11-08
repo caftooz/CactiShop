@@ -1,0 +1,14 @@
+name: CI
+on:
+  pull_request:
+    branches: [dev, master]
+jobs:
+  build:
+    runs-on: windows-latest          # WPF собирается только на Windows
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet build CactiShop.slnx -c Release
+      - run: dotnet format CactiShop.slnx --verify-no-changes
