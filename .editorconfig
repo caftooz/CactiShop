@@ -15,6 +15,7 @@ trim_trailing_whitespace = false
 # Файлы C#
 [*.cs]
 
+charset = utf-8-bom
 #### Основные параметры EditorConfig ####
 
 # Отступы и интервалы

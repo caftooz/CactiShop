@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using CactiShop.Desktop.ViewModels;
 
 namespace CactiShop.Desktop.Views;

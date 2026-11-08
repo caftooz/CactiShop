@@ -1,4 +1,4 @@
-namespace CactiShop.Desktop.Models;
+﻿namespace CactiShop.Desktop.Models;
 
 public record ProductDetails(
     int Id,

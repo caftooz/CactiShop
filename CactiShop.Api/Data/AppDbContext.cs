@@ -1,4 +1,4 @@
-using CactiShop.Api.Data.Models;
+﻿using CactiShop.Api.Data.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace CactiShop.Api.Data;

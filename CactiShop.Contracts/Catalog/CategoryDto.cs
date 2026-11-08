@@ -1,4 +1,4 @@
-namespace CactiShop.Contracts.Catalog;
+﻿namespace CactiShop.Contracts.Catalog;
 
 /// <summary>
 ///     Категория товаров.

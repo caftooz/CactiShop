@@ -1,4 +1,4 @@
-using CactiShop.Contracts.Auth;
+﻿using CactiShop.Contracts.Auth;
 
 namespace CactiShop.Desktop.Models;
 

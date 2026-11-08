@@ -1,4 +1,4 @@
-namespace CactiShop.Desktop.Services.Api;
+﻿namespace CactiShop.Desktop.Services.Api;
 
 public class ApiException : Exception
 {

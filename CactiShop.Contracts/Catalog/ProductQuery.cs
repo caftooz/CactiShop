@@ -1,4 +1,4 @@
-namespace CactiShop.Contracts.Catalog;
+﻿namespace CactiShop.Contracts.Catalog;
 
 /// <summary>
 ///     Параметры поиска в каталоге. null — «не фильтровать по этому полю».

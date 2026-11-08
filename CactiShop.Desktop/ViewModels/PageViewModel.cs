@@ -1,4 +1,4 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using CactiShop.Desktop.Services.Api;
 using CommunityToolkit.Mvvm.ComponentModel;
 
