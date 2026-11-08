@@ -1,0 +1,48 @@
+name: Auto format
+
+on:
+  pull_request:
+    branches: [dev]
+
+concurrency:
+  group: format-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    # не трогаем PR из форков и от Dependabot (им секреты не передаются)
+    if: >
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: windows-latest
+    steps:
+      - name: Токен приложения
+        id: app
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.FORMAT_APP_ID }}
+          private-key: ${{ secrets.FORMAT_APP_KEY }}
+
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ steps.app.outputs.token }}
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - run: dotnet format CactiShop.slnx
+
+      - name: Коммит, если что-то изменилось
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          SLUG: ${{ steps.app.outputs.app-slug }}
+        run: |
+          if (-not (git status --porcelain)) { Write-Host "Код уже отформатирован"; exit 0 }
+          $id = gh api "/users/$env:SLUG[bot]" --jq .id
+          git config user.name  "$env:SLUG[bot]"
+          git config user.email "$id+$env:SLUG[bot]@users.noreply.github.com"
+          git commit -am "style: dotnet format"
+          git push
