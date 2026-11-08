@@ -18,21 +18,25 @@ public class CatalogController : ControllerBase
     }
 
     [HttpGet(ApiRoutes.Catalog.List)]
-    public async Task<IActionResult> GetCatalog()
+    public async Task<ActionResult<List<ProductListItemDto>>> GetCatalog([FromQuery] ProductQuery q)
     {
-        var result = await _context.Products
-            .Where(p => p.IsActive)
-            .Include(p => p.Category)
-            .Select(p => ToListDto(p))
-            .ToListAsync();
+        var query = _context.Products.Where(p => p.IsActive);
 
-        return Ok(result);
+        if (!string.IsNullOrWhiteSpace(q.Query))
+            query = query.Where(p => EF.Functions.ILike(p.Name, $"%{q.Query.Trim()}%"));
+        if (q.CategoryId is { } c) query = query.Where(p => p.CategoryId == c);
+        if (q.MinPrice is { } min) query = query.Where(p => p.Price >= min);
+        if (q.MaxPrice is { } max) query = query.Where(p => p.Price <= max);
+
+        return await query.Select(p => new ProductListItemDto(
+            p.Id, p.Name, p.Price, p.Category.Name, p.ImagePath, p.AvgRate, p.Quantity))
+            .ToListAsync();
     }
 
     [HttpGet(ApiRoutes.Catalog.ById)]
     public async Task<IActionResult> GetById(int id)
     {
-        var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+        var product = await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
         if (product == null) return NotFound(new { message = "Товар не найден" });
 
         return Ok(new ProductDetailsDto(ToListDto(product), product.Description));
@@ -57,18 +61,7 @@ public class CatalogController : ControllerBase
         return Created();
     }
 
-    [HttpGet(ApiRoutes.Catalog.List)]
-    public async Task<IActionResult> SearchProduct([FromQuery] ProductQuery dto)
-    {
-        var querySearch = _context.Products.Where(p => dto.Query == null ? true : p.Name.Contains(dto.Query, StringComparison.InvariantCultureIgnoreCase));
-        var queryPrice = querySearch.Where(p => dto.MinPrice == null ? true : p.Price > dto.MinPrice
-        && dto.MaxPrice == null ? true : p.Price < dto.MaxPrice);
-        var queryCategory = queryPrice.Where(p => dto.CategoryId == null ? true : dto.CategoryId == p.CategoryId);
-        IEnumerable<ProductListItemDto> p = queryCategory.Select(ToListDto);
-        return Ok(p);
-    }
-
-    private ProductListItemDto ToListDto(Product p) =>
+    private static ProductListItemDto ToListDto(Product p) =>
         new ProductListItemDto(
                 p.Id,
                 p.Name,

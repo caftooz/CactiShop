@@ -20,12 +20,15 @@ public partial class NavigationService : ObservableObject, INavigationService
         _services = services;
     }
 
-    public async Task NavigateToAsync<TViewModel>(object? parameter = null) where TViewModel : PageViewModel
+    public async Task NavigateToAsync<TViewModel>(object? parameter = null, bool clearHistory = false) where TViewModel : PageViewModel
     {
         var page = _services.GetRequiredService<TViewModel>();
 
         if (CurrentPage is not null)
             _history.Push(CurrentPage);
+
+        if (clearHistory)
+            _history.Clear();
 
         CurrentPage = page;
 

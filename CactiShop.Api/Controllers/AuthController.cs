@@ -29,7 +29,7 @@ public class AuthController : ControllerBase
         var roleId = _context.Roles.FirstOrDefault(r => r.Name == "User")?.Id ?? -1;
         if (roleId == -1) return NotFound("Пользовательская роль отсутствует");
 
-        (string salt, string hash) = Encryptor.HashPassword(dto.Password);
+        (string hash, string salt) = Encryptor.HashPassword(dto.Password);
 
         var user = new User
         {
@@ -47,7 +47,8 @@ public class AuthController : ControllerBase
     [HttpPost(ApiRoutes.Auth.Login)]
     public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto, TokenService tokens)
     {
-        var user = await _context.Users.FirstAsync(u => u.Name == dto.Login);
+        var user = await _context.Users.Include(u => u.Role)
+                                       .FirstOrDefaultAsync(u => u.Name == dto.Login);
 
         if (user == null) return Unauthorized("Неправильный логин или пароль");
 
