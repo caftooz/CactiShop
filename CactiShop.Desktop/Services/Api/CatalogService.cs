@@ -1,7 +1,8 @@
-﻿using CactiShop.Contracts.Catalog;
+using System.Globalization;
+using CactiShop.Contracts;
+using CactiShop.Contracts.Catalog;
 using CactiShop.Desktop.Models;
 using CactiShop.Desktop.Services.Interfaces;
-using System.Globalization;
 
 namespace CactiShop.Desktop.Services.Api;
 
@@ -9,19 +10,19 @@ public class CatalogService(ApiClient _apiClient) : ICatalogService
 {
     public async Task<IReadOnlyList<Category>> GetCategoriesAsync(CancellationToken ct = default)
     {
-        var dtos = await _apiClient.GetAsync<List<CategoryDto>>("api/categories", ct);
+        var dtos = await _apiClient.GetAsync<List<CategoryDto>>(ApiRoutes.Categories.List, ct);
         return dtos.Select(d => new Category(d.Id, d.Name)).ToList();
     }
 
     public async Task<IReadOnlyList<ProductSummary>> GetCatalogAsync(ProductQuery query, CancellationToken ct = default)
     {
-        var dtos = await _apiClient.GetAsync<List<ProductListItemDto>>("api/products" + BuildQuery(query), ct);
-        return dtos.Select(d => new ProductSummary(d.Id, d.Name, d.CategoryName,d.Price, d.ImageUrl, d.AverageRating)).ToList();
+        var dtos = await _apiClient.GetAsync<List<ProductListItemDto>>(ApiRoutes.Catalog.List + BuildQuery(query), ct);
+        return dtos.Select(d => new ProductSummary(d.Id, d.Name, d.CategoryName, d.Price, d.ImageUrl, d.AverageRating)).ToList();
     }
 
     public async Task<ProductDetails> GetProductAsync(int id, CancellationToken ct = default)
     {
-        var d = await _apiClient.GetAsync<ProductDetailsDto>($"api/products/{id}", ct);
+        var d = await _apiClient.GetAsync<ProductDetailsDto>(ApiRoutes.Catalog.ByIdUrl(id), ct);
         return new ProductDetails(d.Item.Id, d.Item.Name, d.Item.CategoryName, d.Item.Price, d.Item.ImageUrl, d.Item.AverageRating, d.Description);
     }
 

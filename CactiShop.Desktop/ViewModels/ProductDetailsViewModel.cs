@@ -1,18 +1,14 @@
-﻿using CactiShop.Contracts.Catalog;
-using CactiShop.Desktop.Models;
-using CactiShop.Desktop.Services;
+using System.Windows.Media.Imaging;
 using CactiShop.Desktop.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.ComponentModel;
-using System.Windows.Media.Imaging;
 
 namespace CactiShop.Desktop.ViewModels;
 
 public partial class ProductDetailsViewModel(
-    ICatalogService _catalogService, 
+    ICatalogService _catalogService,
     INavigationService _navigationService,
-    IImageService imageService
+    IImageService _imageService
     ) : PageViewModel
 {
 
@@ -34,7 +30,7 @@ public partial class ProductDetailsViewModel(
         Description = model.Description;
 
 
-        Image = imageService.GetImage(model.ImageUrl);
+        Image = _imageService.GetImage(model.ImageUrl);
     });
 
     [ObservableProperty]

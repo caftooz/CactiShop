@@ -1,8 +1,7 @@
-﻿using CactiShop.Desktop.Services.Interfaces;
-using Microsoft.Extensions.Options;
 using System.IO;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using CactiShop.Desktop.Services.Interfaces;
 
 namespace CactiShop.Desktop.Services;
 

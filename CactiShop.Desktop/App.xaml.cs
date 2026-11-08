@@ -1,4 +1,5 @@
-﻿using CactiShop.Desktop.Converters;
+using System.Windows;
+using System.Windows.Threading;
 using CactiShop.Desktop.Factories;
 using CactiShop.Desktop.Services;
 using CactiShop.Desktop.Services.Api;
@@ -9,8 +10,6 @@ using CactiShop.Desktop.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Windows;
-using System.Windows.Threading;
 
 namespace CactiShop.Desktop;
 
@@ -48,6 +47,7 @@ public partial class App : Application
         if (apiOptions.UseFake)
         {
             services.AddSingleton<ICatalogService, FakeCatalogService>();
+            services.AddSingleton<IAuthService, FakeAuthService>();
             services.AddSingleton<IImageService>(new ImageService(new Uri(AppContext.BaseDirectory)));
         }
         else
@@ -59,13 +59,17 @@ public partial class App : Application
                 http.Timeout = TimeSpan.FromSeconds(15);
             });
             services.AddTransient<ICatalogService, CatalogService>();
+            services.AddTransient<IAuthService, AuthService>();
             services.AddSingleton<IImageService>(new ImageService(new Uri(baseUrl)));
         }
 
         // ViewModels
         services.AddSingleton<MainViewModel>();
+
         services.AddTransient<CatalogViewModel>();
         services.AddTransient<ProductDetailsViewModel>();
+        services.AddTransient<LoginViewModel>();
+        services.AddTransient<RegisterViewModel>();
 
         // Factories
         services.AddSingleton<ProductSummaryViewModelFactory>();

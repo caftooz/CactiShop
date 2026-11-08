@@ -1,17 +1,16 @@
-﻿using CactiShop.Contracts.Catalog;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using CactiShop.Contracts.Catalog;
 using CactiShop.Desktop.Factories;
 using CactiShop.Desktop.Models;
 using CactiShop.Desktop.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
-using System.Globalization;
 
 namespace CactiShop.Desktop.ViewModels;
 
 public partial class CatalogViewModel(
-    ICatalogService _catalogService, 
-    INavigationService _navigationService,
+    ICatalogService _catalogService,
     ProductSummaryViewModelFactory _factory
     ) : PageViewModel
 {
@@ -78,7 +77,7 @@ public partial class CatalogViewModel(
         var items = await _catalogService.GetCatalogAsync(query);
 
         Products.Clear();
-        foreach (var p in items) 
+        foreach (var p in items)
             Products.Add(_factory.Create(p));
 
         IsLoaded = true;

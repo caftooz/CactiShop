@@ -1,4 +1,4 @@
-﻿using CactiShop.Contracts.Catalog;
+using CactiShop.Contracts.Catalog;
 using CactiShop.Desktop.Models;
 
 namespace CactiShop.Desktop.Services.Interfaces;

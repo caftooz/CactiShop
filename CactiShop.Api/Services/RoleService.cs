@@ -1,17 +1,16 @@
-﻿using CactiShop.Contracts.Auth;
+using CactiShop.Contracts.Auth;
 
-namespace CactiShop.Api.Services
+namespace CactiShop.Api.Services;
+
+public class RoleService
 {
-    public class RoleService
+    public static UserRole GetUserRole(string roleName)
     {
-        public static UserRole GetUserRole(string roleName)
+        return roleName switch
         {
-            return roleName switch
-            {
-                "Admin" => UserRole.Admin,
-                "User" => UserRole.User,
-                _ => throw new ArgumentException($"Invalid role name: {roleName}")
-            };
-        }
+            "Admin" => UserRole.Admin,
+            "User" => UserRole.User,
+            _ => throw new ArgumentException($"Invalid role name: {roleName}")
+        };
     }
 }

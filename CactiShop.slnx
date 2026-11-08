@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
   <Project Path="CactiShop.Api/CactiShop.Api.csproj" Id="f2f592b9-c9b2-4b9e-9865-2080311500c7" />
   <Project Path="CactiShop.Contracts/CactiShop.Contracts.csproj" Id="615acfa4-5f51-4393-b3be-f2b0dd82c994" />
   <Project Path="CactiShop.Desktop/CactiShop.Desktop.csproj" Id="3a6dce2b-c662-4df9-9071-22439ff7353e" />

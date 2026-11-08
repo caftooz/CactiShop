@@ -1,4 +1,4 @@
-﻿using CactiShop.Desktop.ViewModels;
+using CactiShop.Desktop.ViewModels;
 
 namespace CactiShop.Desktop.Services.Interfaces;
 

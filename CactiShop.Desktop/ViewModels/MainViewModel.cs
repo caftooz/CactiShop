@@ -1,5 +1,3 @@
-﻿using CactiShop.Contracts.Auth;
-using CactiShop.Desktop.Models;
 using CactiShop.Desktop.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -10,12 +8,14 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly ISessionService _sessionService;
     private readonly IDialogService _dialogService;
+    private readonly IAuthService _authService;
 
-    public MainViewModel(INavigationService navigationService, ISessionService sessionService, IDialogService dialogService)
+    public MainViewModel(INavigationService navigationService, ISessionService sessionService, IDialogService dialogService, IAuthService authService)
     {
         NavigationService = navigationService;
         _sessionService = sessionService;
         _dialogService = dialogService;
+        _authService = authService;
 
         _sessionService.CurrentUserChanged += (_, _) =>
         {
@@ -26,7 +26,7 @@ public partial class MainViewModel : ObservableObject
         };
     }
 
-    public INavigationService NavigationService { get; }        
+    public INavigationService NavigationService { get; }
 
     public bool IsLoggedIn => _sessionService.IsLoggedIn;
     public bool IsGuest => !_sessionService.IsLoggedIn;
@@ -49,12 +49,8 @@ public partial class MainViewModel : ObservableObject
     private void OpenAdmin() => _dialogService.ShowInfo("Админ панель");
 
     [RelayCommand]
-    private void SignIn()
-    {
-        var asAdmin = _dialogService.Confirm("Войти как админ? Нет - как обычный пользователь.");
-        _sessionService.SignIn(new AppUser(asAdmin ? "admin1" : "user1", asAdmin ? UserRole.Admin : UserRole.User), "demo-token");
-    }
+    private Task SignInAsync() => NavigationService.NavigateToAsync<LoginViewModel>();
 
     [RelayCommand]
-    private void SignOut() => _sessionService.SignOut();
+    private void SignOut() => _authService.Logout();
 }

@@ -1,6 +1,6 @@
-﻿using System.Net.Http;
-using CommunityToolkit.Mvvm.ComponentModel;
+using System.Net.Http;
 using CactiShop.Desktop.Services.Api;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CactiShop.Desktop.ViewModels;
 
