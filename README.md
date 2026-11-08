@@ -44,25 +44,7 @@ CactiShop.slnx
 
 ## Архитектура
 
-```mermaid
-flowchart LR
-    subgraph Desktop["CactiShop.Desktop (WPF)"]
-        V["View<br/>(XAML)"] --> VM["ViewModel"]
-        VM --> S["Интерфейсы сервисов<br/>ICatalogService, IAuthService"]
-        S -->|UseFake = true| F["Fake-сервисы<br/>тестовые данные"]
-        S -->|UseFake = false| A["Api-сервисы"] --> AC["ApiClient<br/>(HttpClient)"]
-    end
-
-    AC -->|"HTTP + JWT"| C
-
-    subgraph Api["CactiShop.Api (ASP.NET Core)"]
-        C["Контроллеры"] --> DB[("AppDbContext<br/>PostgreSQL")]
-        C --> T["TokenService<br/>JWT"]
-    end
-
-    K["CactiShop.Contracts<br/>DTO + ApiRoutes"] -.-> A
-    K -.-> C
-```
+![Архитектура CactiShop](docs/architecture.drawio.svg)
 
 ### Desktop
 
