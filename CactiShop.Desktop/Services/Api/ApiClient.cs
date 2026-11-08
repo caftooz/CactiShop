@@ -1,10 +1,10 @@
-﻿using CactiShop.Desktop.Services.Interfaces;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
+using CactiShop.Desktop.Services.Interfaces;
 
 namespace CactiShop.Desktop.Services.Api;
 
@@ -21,7 +21,7 @@ public class ApiClient(HttpClient _client, ISessionService _sessionService)
 
     public Task<T> PatchAsync<T>(string url, object? body, CancellationToken ct = default) =>
         SendAsync<T>(WithBody(HttpMethod.Patch, url, body), ct);
-    
+
 
     public async Task<T> UploadFileAsync<T>(string url, string filePath, string fieldName = "file", CancellationToken ct = default)
     {
@@ -31,7 +31,7 @@ public class ApiClient(HttpClient _client, ISessionService _sessionService)
 
         using var form = new MultipartFormDataContent();
         form.Add(file, fieldName, Path.GetFileName(filePath));
-         
+
         using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = form };
         return await SendAsync<T>(request, ct);
     }
@@ -91,7 +91,7 @@ public class ApiClient(HttpClient _client, ISessionService _sessionService)
             if (json.RootElement.TryGetProperty("message", out var m) && m.GetString() is { Length: > 0 } msg)
                 return msg;
         }
-        catch (JsonException){}
+        catch (JsonException) { }
 
         return response.StatusCode switch
         {
@@ -102,4 +102,3 @@ public class ApiClient(HttpClient _client, ISessionService _sessionService)
         };
     }
 }
-  

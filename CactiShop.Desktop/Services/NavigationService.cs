@@ -1,4 +1,4 @@
-﻿using CactiShop.Desktop.Services.Interfaces;
+using CactiShop.Desktop.Services.Interfaces;
 using CactiShop.Desktop.ViewModels;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,7 +34,7 @@ public partial class NavigationService : ObservableObject, INavigationService
 
     public void GoBack()
     {
-        if (CanGoBack) 
+        if (CanGoBack)
             CurrentPage = _history.Pop();
     }
 

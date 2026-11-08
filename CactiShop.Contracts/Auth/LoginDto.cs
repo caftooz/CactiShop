@@ -1,3 +1,3 @@
-﻿namespace CactiShop.Contracts.Auth;
+namespace CactiShop.Contracts.Auth;
 
 public record LoginDto(string Login, string Password);

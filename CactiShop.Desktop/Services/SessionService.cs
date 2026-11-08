@@ -1,6 +1,6 @@
-﻿using CactiShop.Desktop.Models;
-using CactiShop.Desktop.Services.Interfaces;
 using CactiShop.Contracts.Auth;
+using CactiShop.Desktop.Models;
+using CactiShop.Desktop.Services.Interfaces;
 
 namespace CactiShop.Desktop.Services;
 

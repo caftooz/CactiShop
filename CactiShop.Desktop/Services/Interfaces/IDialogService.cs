@@ -1,4 +1,4 @@
-﻿namespace CactiShop.Desktop.Services.Interfaces;
+namespace CactiShop.Desktop.Services.Interfaces;
 
 public interface IDialogService
 {
