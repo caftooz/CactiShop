@@ -1,4 +1,4 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using CactiShop.Contracts;
 using CactiShop.Contracts.Auth;
 using CactiShop.Desktop.Models;

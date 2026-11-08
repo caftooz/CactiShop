@@ -1,4 +1,4 @@
-using CactiShop.Desktop.Services.Interfaces;
+﻿using CactiShop.Desktop.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 

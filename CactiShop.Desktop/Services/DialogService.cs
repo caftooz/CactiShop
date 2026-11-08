@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using CactiShop.Desktop.Services.Interfaces;
 
 namespace CactiShop.Desktop.Services;

@@ -1,4 +1,4 @@
-using CactiShop.Contracts.Auth;
+﻿using CactiShop.Contracts.Auth;
 using CactiShop.Desktop.Models;
 using CactiShop.Desktop.Services.Api;
 using CactiShop.Desktop.Services.Interfaces;

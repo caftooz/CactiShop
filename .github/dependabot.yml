@@ -1,0 +1,18 @@
+version: 2
+
+multi-ecosystem-groups:
+  all-dependencies:
+    schedule:
+      interval: weekly
+    target-branch: dev        # для групп эта настройка задаётся только здесь
+
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    patterns: ["*"]            # обязательно для каждой экосистемы в группе
+    multi-ecosystem-group: all-dependencies
+
+  - package-ecosystem: github-actions
+    directory: /
+    patterns: ["*"]
+    multi-ecosystem-group: all-dependencies
