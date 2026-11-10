@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="CactiShop.Desktop.Views.ProductDetailsView"
+<UserControl x:Class="CactiShop.Desktop.Views.ProductDetailsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -31,7 +31,8 @@
                     </Grid.ColumnDefinitions>
 
                     <Grid Grid.Column="0" Height="280" VerticalAlignment="Top">
-                        <Image Source="{Binding Image}" Stretch="Uniform" />
+                        <Image Source="{Binding Image, TargetNullValue={StaticResource NoImage}}"
+                               Stretch="Uniform" />
                     </Grid>
 
                     <StackPanel Grid.Column="2">

@@ -1,4 +1,4 @@
-﻿using System.Windows.Media.Imaging;
+﻿using System.Windows.Media;
 using CactiShop.Desktop.Models;
 using CactiShop.Desktop.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -10,13 +10,14 @@ public partial class ProductSummaryViewModel : ObservableObject
 {
     private ProductSummary _model;
     private INavigationService _navService;
+    private IImageService _imageService;
 
     public ProductSummaryViewModel(ProductSummary model, INavigationService navService, IImageService imageService)
     {
         _model = model;
         _navService = navService;
-
-        Image = imageService.GetImage(model.ImageUrl);
+        _imageService = imageService;
+        _ = LoadImageAsync();
     }
 
     public string Name => _model.Name;
@@ -24,7 +25,9 @@ public partial class ProductSummaryViewModel : ObservableObject
     public string PriceText => $"{_model.Price:0.00} ₽";
     public string AvgRatingText => _model.AvgRating == null ? "Нет оценок" : $"★ {_model.AvgRating:0.0}";
 
-    public BitmapImage Image { get; }
+    [ObservableProperty]
+    private ImageSource? _image;
+    public async Task LoadImageAsync() => Image = await _imageService.GetImageAsync(_model.ImageUrl);
 
 
     [RelayCommand]

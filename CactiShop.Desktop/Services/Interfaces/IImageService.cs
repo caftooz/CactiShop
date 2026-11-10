@@ -1,8 +1,8 @@
-﻿using System.Windows.Media.Imaging;
+﻿using System.Windows.Media;
 
 namespace CactiShop.Desktop.Services.Interfaces;
 
 public interface IImageService
 {
-    BitmapImage GetImage(string? relativeUrl);
+    Task<ImageSource> GetImageAsync(string? url);
 }

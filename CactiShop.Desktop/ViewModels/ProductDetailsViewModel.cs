@@ -1,4 +1,4 @@
-﻿using System.Windows.Media.Imaging;
+﻿using System.Windows.Media;
 using CactiShop.Desktop.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -27,13 +27,13 @@ public partial class ProductDetailsViewModel(
         {
             Name = model.Name;
             CategoryName = model.CategoryName;
-            PriceText = $"{model.Price:N0} ₽";
+            PriceText = $"{model.Price:0.00} ₽";
             AvgRatingText = model.AvgRating == null ? "Нет оценок" : $"★ {model.AvgRating:0.0}";
             Description = model.Description;
         }
 
 
-        Image = _imageService.GetImage(model?.ImageUrl);
+        Image = await _imageService.GetImageAsync(model?.ImageUrl);
     });
 
     [ObservableProperty]
@@ -52,7 +52,7 @@ public partial class ProductDetailsViewModel(
     private string _description;
 
     [ObservableProperty]
-    private BitmapImage _image;
+    private ImageSource? _image;
 
     [RelayCommand]
     private void GoBack() => _navigationService.GoBack();
