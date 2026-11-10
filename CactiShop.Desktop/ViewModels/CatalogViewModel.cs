@@ -45,7 +45,7 @@ public partial class CatalogViewModel(
             foreach (var c in categories) Categories.Add(c);
         SelectedCategory = AllCategories;
 
-        await RunAsync(SearchAsync);
+        await LoadProductsAsync();
     });
 
     [RelayCommand]
