@@ -9,7 +9,7 @@ public class User
     public string PasswordSalt { get; set; } = "";
 
     public Role Role { get; set; } = null!;
-    public ICollection<CartItems> CartItems { get; set; } = [];
+    public ICollection<CartItem> CartItems { get; set; } = [];
     public ICollection<Order> Orders { get; set; } = [];
 }
 
@@ -51,7 +51,7 @@ public class Product
 
     public Category Category { get; set; } = null!;
     public ICollection<ProductReview> ProductReviews { get; set; } = [];
-    public ICollection<Order> Orders { get; set; } = [];
+    public ICollection<OrderProduct> OrderProducts { get; set; } = [];
 }
 
 public class Order
@@ -67,10 +67,10 @@ public class Order
     public User User { get; set; } = null!;
     public OrderStatus Status { get; set; } = null!;
     public OrderPoint? OrderPoint { get; set; }
-    public ICollection<OrderProducts> OrderProducts { get; set; } = [];
+    public ICollection<OrderProduct> OrderProducts { get; set; } = [];
 }
 
-public class OrderProducts
+public class OrderProduct
 {
     public int Id { get; set; }
     public int OrderId { get; set; }
@@ -95,7 +95,7 @@ public class ProductReview
     public User User { get; set; } = null!;
 }
 
-public class CartItems
+public class CartItem
 {
     public int UserId { get; set; }
     public int ProductId { get; set; }

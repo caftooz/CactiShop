@@ -48,6 +48,27 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseStaticFiles();
+
 app.MapControllers();
+
+app.UseStatusCodePages(async context =>
+{
+    var response = context.HttpContext.Response;
+
+    if (response.StatusCode == StatusCodes.Status404NotFound)
+    {
+        response.ContentType = "application/json";
+
+        var path = context.HttpContext.Request.Path;
+
+        var result = new
+        {
+            message = $"Эндпоинт {path} не существует."
+        };
+
+        await response.WriteAsJsonAsync(result);
+    }
+});
 
 app.Run();

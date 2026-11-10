@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CactiShop.Api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -70,10 +70,14 @@ namespace CactiShop.Api.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    CategoryId = table.Column<int>(type: "integer", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
+                    Price = table.Column<decimal>(type: "numeric", nullable: false),
                     Quantity = table.Column<int>(type: "integer", nullable: false),
-                    CategoryId = table.Column<int>(type: "integer", nullable: false)
+                    ImagePath = table.Column<string>(type: "text", nullable: false),
+                    AvgRate = table.Column<double>(type: "double precision", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -92,9 +96,10 @@ namespace CactiShop.Api.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    RoleId = table.Column<int>(type: "integer", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     PasswordHash = table.Column<string>(type: "text", nullable: false),
-                    RoleId = table.Column<int>(type: "integer", nullable: false)
+                    PasswordSalt = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -141,9 +146,9 @@ namespace CactiShop.Api.Migrations
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     StatusId = table.Column<int>(type: "integer", nullable: false),
                     OrderPointId = table.Column<int>(type: "integer", nullable: true),
+                    DeliveryAddress = table.Column<string>(type: "text", nullable: true),
                     Date = table.Column<DateOnly>(type: "date", nullable: false),
-                    TotalPrice = table.Column<decimal>(type: "numeric", nullable: false),
-                    DeliveryAddress = table.Column<string>(type: "text", nullable: true)
+                    TotalPrice = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -200,15 +205,16 @@ namespace CactiShop.Api.Migrations
                 name: "OrderProducts",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     OrderId = table.Column<int>(type: "integer", nullable: false),
                     ProductId = table.Column<int>(type: "integer", nullable: false),
-                    Id = table.Column<int>(type: "integer", nullable: false),
                     ProductPrice = table.Column<decimal>(type: "numeric", nullable: false),
                     ProductQuantity = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderProducts", x => new { x.OrderId, x.ProductId });
+                    table.PrimaryKey("PK_OrderProducts", x => x.Id);
                     table.ForeignKey(
                         name: "FK_OrderProducts_Orders_OrderId",
                         column: x => x.OrderId,
@@ -227,6 +233,11 @@ namespace CactiShop.Api.Migrations
                 name: "IX_CartItems_ProductId",
                 table: "CartItems",
                 column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderProducts_OrderId",
+                table: "OrderProducts",
+                column: "OrderId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderProducts_ProductId",

@@ -59,7 +59,7 @@ public partial class App : Application
             });
             services.AddTransient<ICatalogService, CatalogService>();
             services.AddTransient<IAuthService, AuthService>();
-            services.AddSingleton<IImageService>(new ImageService(new Uri(apiOptions.BaseUrl)));
+            services.AddSingleton<IImageService>(new ImageService(new Uri(apiOptions.BaseUrl + "image/")));
         }
 
         // ViewModels

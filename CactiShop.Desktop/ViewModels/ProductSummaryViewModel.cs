@@ -21,7 +21,7 @@ public partial class ProductSummaryViewModel : ObservableObject
 
     public string Name => _model.Name;
     public string CategoryName => _model.CategoryName;
-    public string PriceText => $"{_model.Price:N0} ₽";
+    public string PriceText => $"{_model.Price:0.00} ₽";
     public string AvgRatingText => _model.AvgRating == null ? "Нет оценок" : $"★ {_model.AvgRating:0.0}";
 
     public BitmapImage Image { get; }

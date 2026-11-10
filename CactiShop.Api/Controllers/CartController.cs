@@ -29,7 +29,7 @@ public class CartController : ControllerBase
             return BadRequest(new { message = "Количество товара в корзине не может быть меньше 1" });
 
         int userId = GetUserId();
-        CartItems? cartItem = await _context.CartItems.FirstOrDefaultAsync(ci => ci.ProductId == dto.ProductId && ci.UserId == userId);
+        CartItem? cartItem = await _context.CartItems.FirstOrDefaultAsync(ci => ci.ProductId == dto.ProductId && ci.UserId == userId);
         if (cartItem != null)
         {
             cartItem.Quantity = dto.NewQuantity;
@@ -42,7 +42,7 @@ public class CartController : ControllerBase
         if (!await _context.Products.AnyAsync(p => p.Id == dto.ProductId))
             return BadRequest(new { message = "Товар не найден" });
 
-        _context.CartItems.Add(new CartItems
+        _context.CartItems.Add(new CartItem
         {
             UserId = userId,
             ProductId = dto.ProductId,

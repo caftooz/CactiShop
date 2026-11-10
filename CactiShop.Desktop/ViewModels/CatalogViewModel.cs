@@ -41,10 +41,11 @@ public partial class CatalogViewModel(
         var categories = await _catalogService.GetCategoriesAsync();
         Categories.Clear();
         Categories.Add(AllCategories);
-        foreach (var c in categories) Categories.Add(c);
+        if (categories is not null)
+            foreach (var c in categories) Categories.Add(c);
         SelectedCategory = AllCategories;
 
-        await LoadProductsAsync();
+        await RunAsync(SearchAsync);
     });
 
     [RelayCommand]

@@ -25,4 +25,9 @@
     <ProjectReference Include="..\CactiShop.Contracts\CactiShop.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+    <Folder Include="wwwroot\image\" />
+  </ItemGroup>
+
 </Project>
