@@ -48,6 +48,7 @@ public partial class App : Application
         {
             services.AddSingleton<ICatalogService, FakeCatalogService>();
             services.AddSingleton<IAuthService, FakeAuthService>();
+            services.AddSingleton<ICartService, FakeCartService>();
         }
         else
         {
@@ -60,6 +61,7 @@ public partial class App : Application
             services.AddTransient<IAuthService, AuthService>();
         }
 
+        // ImageService
         services.AddHttpClient(ImageService.HttpClientName, http =>
         {
             http.BaseAddress = apiOptions.UseFake

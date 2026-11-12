@@ -60,7 +60,7 @@
         </StackPanel>
 
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Products}">
+            <ItemsControl d:ItemsSource="{d:SampleData ItemCount=3}" ItemsSource="{Binding Products}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel />
@@ -84,6 +84,18 @@
                                                Text="{Binding AvgRatingText}"/>
                                     <TextBlock FontSize="16" FontWeight="Bold" Text="{Binding PriceText}" />
                                 </DockPanel>
+                                <Button Content="В корзину" Visibility="{Binding HasInCart, Converter={StaticResource InverseBoolToVisibility}}"
+                                        Command="{Binding AddToCartCommand}"/>
+                                <Grid Visibility="{Binding HasInCart, Converter={StaticResource BoolToVisibility}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" Content="-" Command="{Binding DecreaseQuantityCommand}"/>
+                                    <TextBox Grid.Column="1" Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Button Grid.Column="2" Content="+" Command="{Binding IncreaseQuantityCommand}"/>
+                                </Grid>
                                 <!--<Border Style="{StaticResource DangerBadge}" HorizontalAlignment="Left" Margin="0,8,0,0"
                                         Visibility="{Binding CanBuy, Converter={StaticResource InverseBoolToVisibility}}">
                                     <TextBlock Text="Нет в наличии" Foreground="{StaticResource DangerBrush}" FontSize="12" />

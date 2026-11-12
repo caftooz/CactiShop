@@ -6,19 +6,26 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CactiShop.Desktop.ViewModels;
 
-public partial class ProductSummaryViewModel : ObservableObject
+public partial class ProductSummaryViewModel : ObservableObject, IDisposable
 {
     private ProductSummary _model;
     private INavigationService _navService;
     private IImageService _imageService;
+    private ICartService _cartService;
 
-    public ProductSummaryViewModel(ProductSummary model, INavigationService navService, IImageService imageService)
+    private int _oldQuantity;
+
+    public ProductSummaryViewModel(ProductSummary model, INavigationService navService, IImageService imageService, ICartService cartService)
     {
         _model = model;
         _navService = navService;
         _imageService = imageService;
+        _cartService = cartService;
         _ = LoadImageAsync();
+        _ = LoadQuantityAsync();
     }
+
+    public bool HasInCart => Quantity > 0;
 
     public string Name => _model.Name;
     public string CategoryName => _model.CategoryName;
@@ -26,12 +33,33 @@ public partial class ProductSummaryViewModel : ObservableObject
     public string AvgRatingText => _model.AvgRating == null ? "Нет оценок" : $"★ {_model.AvgRating:0.0}";
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasInCart))]
+    private int _quantity;
+
+    [ObservableProperty]
     private ImageSource? _image;
     public async Task LoadImageAsync() => Image = await _imageService.GetImageAsync(_model.ImageUrl);
+    public async Task LoadQuantityAsync() { Quantity = await _cartService.GetProductQuantity(_model.Id); _oldQuantity = Quantity; }
 
+    [RelayCommand]
+    public void IncreaseQuantity() { if (Quantity < 99) Quantity++; }
+    [RelayCommand]
+    public void DecreaseQuantity() { if (Quantity > 0) Quantity--; }
+
+    [RelayCommand]
+    public void AddToCart() => Quantity++;
 
     [RelayCommand]
     public Task OpenProductAsync() =>
         _navService.NavigateToAsync<ProductDetailsViewModel>(_model.Id);
 
+    public async void Dispose()
+    {
+        if (Quantity == _oldQuantity)
+            return;
+        if (Quantity != await _cartService.GetProductQuantity(_model.Id))
+        {
+            await _cartService.SetProductQuantity(_model.Id, Quantity);
+        }
+    }
 }

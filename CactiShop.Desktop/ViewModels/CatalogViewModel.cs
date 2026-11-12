@@ -48,6 +48,14 @@ public partial class CatalogViewModel(
         await LoadProductsAsync();
     });
 
+    public override async Task<bool> OnNavigatingFromAsync()
+    {
+        foreach (var p in Products)
+            p.Dispose();
+
+        return await Task.FromResult(true);
+    }
+
     [RelayCommand]
     private Task SearchAsync() => RunAsync(LoadProductsAsync);
 

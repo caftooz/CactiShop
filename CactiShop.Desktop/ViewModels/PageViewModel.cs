@@ -24,6 +24,11 @@ public abstract partial class PageViewModel : ObservableObject
     public virtual Task OnNavigatedToAsync(object? parameter) => Task.CompletedTask;
 
     /// <summary>
+    ///     Вызывается навигацией перед открытием следующей страницы.
+    /// </summary>
+    public virtual Task<bool> OnNavigatingFromAsync() => Task.FromResult(true);
+
+    /// <summary>
     ///     Выполнить обращение к сервису: показать загрузку, поймать ошибку, положить её текст в ErrorMessage.
     /// </summary>
     protected async Task RunAsync(Func<Task> action)
