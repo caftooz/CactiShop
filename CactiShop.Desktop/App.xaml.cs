@@ -48,7 +48,7 @@ public partial class App : Application
         {
             services.AddSingleton<ICatalogService, FakeCatalogService>();
             services.AddSingleton<IAuthService, FakeAuthService>();
-            services.AddSingleton<IImageService>(new ImageService(new Uri(AppContext.BaseDirectory)));
+            services.AddSingleton<ICartService, FakeCartService>();
         }
         else
         {
@@ -59,8 +59,17 @@ public partial class App : Application
             });
             services.AddTransient<ICatalogService, CatalogService>();
             services.AddTransient<IAuthService, AuthService>();
-            services.AddSingleton<IImageService>(new ImageService(new Uri(apiOptions.BaseUrl)));
         }
+
+        // ImageService
+        services.AddHttpClient(ImageService.HttpClientName, http =>
+        {
+            http.BaseAddress = apiOptions.UseFake
+                ? new Uri(AppContext.BaseDirectory)
+                : new Uri(apiOptions.BaseUrl + "image/");
+            http.Timeout = TimeSpan.FromSeconds(15);
+        });
+        services.AddSingleton<IImageService, ImageService>();
 
         // ViewModels
         services.AddSingleton<MainViewModel>();

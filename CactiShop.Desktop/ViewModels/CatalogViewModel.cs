@@ -41,11 +41,22 @@ public partial class CatalogViewModel(
         var categories = await _catalogService.GetCategoriesAsync();
         Categories.Clear();
         Categories.Add(AllCategories);
-        foreach (var c in categories) Categories.Add(c);
+        if (categories is not null)
+            foreach (var c in categories) Categories.Add(c);
         SelectedCategory = AllCategories;
 
         await LoadProductsAsync();
     });
+
+    public override async Task<bool> OnNavigatingFromAsync()
+    {
+        List<Task> tasks = new();
+        foreach (var p in Products)
+            tasks.Add(p.DisposeAsync().AsTask());
+
+        await Task.WhenAll(tasks);
+        return true;
+    }
 
     [RelayCommand]
     private Task SearchAsync() => RunAsync(LoadProductsAsync);
@@ -77,8 +88,16 @@ public partial class CatalogViewModel(
         var items = await _catalogService.GetCatalogAsync(query);
 
         Products.Clear();
+
+        List<Task> tasks = new();
         foreach (var p in items)
-            Products.Add(_factory.Create(p));
+        {
+            var pvm = _factory.Create(p);
+            Products.Add(pvm);
+            tasks.Add(pvm.LoadDataAsync());
+        }
+
+        await Task.WhenAll(tasks);
 
         IsLoaded = true;
         OnPropertyChanged(nameof(IsEmpty));

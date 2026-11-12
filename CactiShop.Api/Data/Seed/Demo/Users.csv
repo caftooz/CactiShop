@@ -1,0 +1,7 @@
+﻿Id;RoleId;Name;Password
+1;1;admin;admin
+2;2;user;user
+3;2;ivan;ivan123
+4;2;maria;maria123
+5;2;petr;petr123
+6;2;olga;olga123

@@ -24,6 +24,7 @@ public class FakeCatalogService : ICatalogService
             NewProduct(6, "Стиральный порошок 6 кг" , 899m   , GetCategoryName(3) , "Images/TestProducts/powder.png" , 4.4 , "Снят с продажи админом.")
         ];
     }
+
     private readonly List<Category> _categories;
     private readonly List<ProductDetails> _products;
 

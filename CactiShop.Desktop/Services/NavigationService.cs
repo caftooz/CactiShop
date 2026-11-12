@@ -25,7 +25,12 @@ public partial class NavigationService : ObservableObject, INavigationService
         var page = _services.GetRequiredService<TViewModel>();
 
         if (CurrentPage is not null)
+        {
+            if (!await CurrentPage.OnNavigatingFromAsync())
+                return;
+
             _history.Push(CurrentPage);
+        }
 
         if (clearHistory)
             _history.Clear();

@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EfCore.FileSeeding" Version="1.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.14" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14">
@@ -23,6 +24,15 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CactiShop.Contracts\CactiShop.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+    <Folder Include="wwwroot\image\" />
+  </ItemGroup>
+
+  <ItemGroup>
+      <EmbeddedResource Include="Data\Seed\**\*.json;Data\Seed\**\*.csv;Data\Seed\**\*.xlsx" />
   </ItemGroup>
 
 </Project>

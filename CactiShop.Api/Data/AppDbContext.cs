@@ -14,12 +14,12 @@ public class AppDbContext : DbContext
     public DbSet<OrderPoint> OrderPoints => Set<OrderPoint>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Order> Orders => Set<Order>();
-    public DbSet<OrderProducts> OrderProducts => Set<OrderProducts>();
+    public DbSet<OrderProduct> OrderProducts => Set<OrderProduct>();
     public DbSet<ProductReview> ProductReviews => Set<ProductReview>();
-    public DbSet<CartItems> CartItems => Set<CartItems>();
+    public DbSet<CartItem> CartItems => Set<CartItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<CartItems>().HasKey(c => new { c.UserId, c.ProductId });
+        modelBuilder.Entity<CartItem>().HasKey(c => new { c.UserId, c.ProductId });
     }
 }

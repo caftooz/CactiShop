@@ -42,6 +42,13 @@ public class CatalogController : ControllerBase
         return Ok(new ProductDetailsDto(ToListDto(product), product.Description));
     }
 
+    [HttpGet(ApiRoutes.Categories.List)]
+    public async Task<ActionResult<List<CategoryDto>>> GetCategories()
+    {
+        var categories = await _context.Categories.Select(c => new CategoryDto(c.Id, c.Name)).ToListAsync();
+        return Ok(categories);
+    }
+
     [HttpPost(ApiRoutes.Catalog.List)]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddProduct(CreateProductDto dto)

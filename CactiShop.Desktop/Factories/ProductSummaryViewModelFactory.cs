@@ -4,7 +4,7 @@ using CactiShop.Desktop.ViewModels;
 
 namespace CactiShop.Desktop.Factories;
 
-public class ProductSummaryViewModelFactory(INavigationService nav, IImageService img)
+public class ProductSummaryViewModelFactory(INavigationService nav, IImageService img, ICartService cart)
 {
-    public ProductSummaryViewModel Create(ProductSummary model) => new(model, nav, img);
+    public ProductSummaryViewModel Create(ProductSummary model) => new(model, nav, img, cart);
 }
