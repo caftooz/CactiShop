@@ -8,12 +8,16 @@ namespace CactiShop.Desktop.ViewModels;
 public partial class ProductDetailsViewModel(
     ICatalogService _catalogService,
     INavigationService _navigationService,
-    IImageService _imageService
+    IImageService _imageService,
+    ICartService _cartService
     ) : PageViewModel
 {
 
     [ObservableProperty]
     private bool _hasModel;
+    public bool HasInCart => Quantity > 0;
+
+    private int _productId;
 
     public override Task OnNavigatedToAsync(object? parameter) => RunAsync(async () =>
     {
@@ -25,6 +29,7 @@ public partial class ProductDetailsViewModel(
 
         if (model is not null)
         {
+            _productId = model.Id;
             Name = model.Name;
             CategoryName = model.CategoryName;
             PriceText = $"{model.Price:0.00} ₽";
@@ -34,7 +39,22 @@ public partial class ProductDetailsViewModel(
 
 
         Image = await _imageService.GetImageAsync(model?.ImageUrl);
+        await LoadQuantityAsync();
     });
+
+    public override async Task<bool> OnNavigatingFromAsync()
+    {
+        if (Quantity != await _cartService.GetProductQuantity(_productId))
+        {
+            await _cartService.SetProductQuantity(_productId, Quantity);
+        }
+        return await Task.FromResult(true);
+    }
+    public async Task LoadQuantityAsync() { Quantity = await _cartService.GetProductQuantity(_productId); }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasInCart))]
+    private int _quantity;
 
     [ObservableProperty]
     private string _name;
@@ -53,6 +73,14 @@ public partial class ProductDetailsViewModel(
 
     [ObservableProperty]
     private ImageSource? _image;
+
+    [RelayCommand]
+    public void IncreaseQuantity() { if (Quantity < 99) Quantity++; }
+    [RelayCommand]
+    public void DecreaseQuantity() { if (Quantity > 0) Quantity--; }
+
+    [RelayCommand]
+    public void AddToCart() => Quantity++;
 
     [RelayCommand]
     private void GoBack() => _navigationService.GoBack();

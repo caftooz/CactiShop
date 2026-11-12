@@ -6,14 +6,16 @@ public class FakeCartService : ICartService
 {
     private Dictionary<int, int> _cartItems = new();
 
-    public Task<int> GetProductQuantity(int productId, CancellationToken ct = default)
+    public async Task<int> GetProductQuantity(int productId, CancellationToken ct = default)
     {
+        await Task.Delay(400, ct);
         _cartItems.TryGetValue(productId, out int quantity);
-        return Task.FromResult(quantity);
+        return quantity;
     }
 
-    public Task SetProductQuantity(int productId, int quantity, CancellationToken ct = default)
+    public async Task SetProductQuantity(int productId, int quantity, CancellationToken ct = default)
     {
+        await Task.Delay(400, ct);
         if (quantity <= 0)
         {
             _cartItems.Remove(productId);
@@ -22,6 +24,5 @@ public class FakeCartService : ICartService
         {
             _cartItems[productId] = quantity;
         }
-        return Task.CompletedTask;
     }
 }

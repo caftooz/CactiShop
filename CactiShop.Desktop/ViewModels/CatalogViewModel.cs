@@ -50,10 +50,12 @@ public partial class CatalogViewModel(
 
     public override async Task<bool> OnNavigatingFromAsync()
     {
+        List<Task> tasks = new();
         foreach (var p in Products)
-            p.Dispose();
+            tasks.Add(p.DisposeAsync().AsTask());
 
-        return await Task.FromResult(true);
+        await Task.WhenAll(tasks);
+        return true;
     }
 
     [RelayCommand]
@@ -86,8 +88,16 @@ public partial class CatalogViewModel(
         var items = await _catalogService.GetCatalogAsync(query);
 
         Products.Clear();
+
+        List<Task> tasks = new();
         foreach (var p in items)
-            Products.Add(_factory.Create(p));
+        {
+            var pvm = _factory.Create(p);
+            Products.Add(pvm);
+            tasks.Add(pvm.LoadDataAsync());
+        }
+
+        await Task.WhenAll(tasks);
 
         IsLoaded = true;
         OnPropertyChanged(nameof(IsEmpty));

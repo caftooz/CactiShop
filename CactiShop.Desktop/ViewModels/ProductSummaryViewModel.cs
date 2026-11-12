@@ -6,7 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CactiShop.Desktop.ViewModels;
 
-public partial class ProductSummaryViewModel : ObservableObject, IDisposable
+public partial class ProductSummaryViewModel : ObservableObject, IAsyncDisposable
 {
     private ProductSummary _model;
     private INavigationService _navService;
@@ -21,8 +21,12 @@ public partial class ProductSummaryViewModel : ObservableObject, IDisposable
         _navService = navService;
         _imageService = imageService;
         _cartService = cartService;
-        _ = LoadImageAsync();
-        _ = LoadQuantityAsync();
+    }
+
+    public async Task LoadDataAsync()
+    {
+        await LoadImageAsync();
+        await LoadQuantityAsync();
     }
 
     public bool HasInCart => Quantity > 0;
@@ -53,7 +57,7 @@ public partial class ProductSummaryViewModel : ObservableObject, IDisposable
     public Task OpenProductAsync() =>
         _navService.NavigateToAsync<ProductDetailsViewModel>(_model.Id);
 
-    public async void Dispose()
+    public async ValueTask DisposeAsync()
     {
         if (Quantity == _oldQuantity)
             return;
