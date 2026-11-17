@@ -14,7 +14,7 @@ namespace CactiShop.Api.Data
         public DbSet<OrderPoint> OrderPoints => Set<OrderPoint>();
         public DbSet<Product> Products => Set<Product>();
         public DbSet<Order> Orders => Set<Order>();
-        public DbSet<OrderProducts> OrderProducts => Set<OrderProducts>();
+        public DbSet<OrderProduct> OrderProducts => Set<OrderProduct>();
         public DbSet<ProductReview> ProductReviews => Set<ProductReview>();
         public DbSet<CartItems> CartItems => Set<CartItems>();    
 

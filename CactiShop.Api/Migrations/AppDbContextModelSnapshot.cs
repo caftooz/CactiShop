@@ -74,11 +74,11 @@ namespace CactiShop.Api.Migrations
                     b.Property<int?>("OrderPointId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("StatusId")
+                    b.Property<int?>("ProductId")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("TotalPrice")
-                        .HasColumnType("numeric");
+                    b.Property<int>("StatusId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
@@ -86,6 +86,8 @@ namespace CactiShop.Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("OrderPointId");
+
+                    b.HasIndex("ProductId");
 
                     b.HasIndex("StatusId");
 
@@ -111,7 +113,7 @@ namespace CactiShop.Api.Migrations
                     b.ToTable("OrderPoints");
                 });
 
-            modelBuilder.Entity("CactiShop.Api.Data.Models.OrderProducts", b =>
+            modelBuilder.Entity("CactiShop.Api.Data.Models.OrderProduct", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -178,6 +180,9 @@ namespace CactiShop.Api.Migrations
                     b.Property<string>("ImagePath")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -302,6 +307,10 @@ namespace CactiShop.Api.Migrations
                         .WithMany()
                         .HasForeignKey("OrderPointId");
 
+                    b.HasOne("CactiShop.Api.Data.Models.Product", null)
+                        .WithMany("Orders")
+                        .HasForeignKey("ProductId");
+
                     b.HasOne("CactiShop.Api.Data.Models.OrderStatus", "Status")
                         .WithMany()
                         .HasForeignKey("StatusId")
@@ -321,7 +330,7 @@ namespace CactiShop.Api.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("CactiShop.Api.Data.Models.OrderProducts", b =>
+            modelBuilder.Entity("CactiShop.Api.Data.Models.OrderProduct", b =>
                 {
                     b.HasOne("CactiShop.Api.Data.Models.Order", "Order")
                         .WithMany("OrderProducts")
@@ -354,7 +363,7 @@ namespace CactiShop.Api.Migrations
             modelBuilder.Entity("CactiShop.Api.Data.Models.ProductReview", b =>
                 {
                     b.HasOne("CactiShop.Api.Data.Models.Product", "Product")
-                        .WithMany()
+                        .WithMany("ProductReviews")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -384,6 +393,13 @@ namespace CactiShop.Api.Migrations
             modelBuilder.Entity("CactiShop.Api.Data.Models.Order", b =>
                 {
                     b.Navigation("OrderProducts");
+                });
+
+            modelBuilder.Entity("CactiShop.Api.Data.Models.Product", b =>
+                {
+                    b.Navigation("Orders");
+
+                    b.Navigation("ProductReviews");
                 });
 
             modelBuilder.Entity("CactiShop.Api.Data.Models.User", b =>
