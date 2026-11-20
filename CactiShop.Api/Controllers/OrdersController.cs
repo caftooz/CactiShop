@@ -26,7 +26,7 @@ namespace CactiShop.Api.Controllers
         {
             int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             var ordersQuery = _context.Orders.Include(o => o.OrderProducts).Where(p => p.Id == userId);
-            if(byDesc == null) return Ok(ordersQuery.Select(ToDto));
+            if (byDesc == null) return Ok(ordersQuery.Select(ToDto));
             ordersQuery = byDesc == true ? ordersQuery.OrderByDescending(o => o.Date) : ordersQuery.OrderBy(o => o.Date);
             return Ok(ordersQuery.Select(ToDto));
         }
@@ -69,6 +69,20 @@ namespace CactiShop.Api.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { order.Id });
+        }
+        [HttpPatch("{id:int}")]
+        [Authorize (Roles = "Admin")]
+        public async Task<IActionResult> ChangeOrderStatus(int id)
+        {
+            var order = await _context.Orders.FindAsync(id);
+            if(order == null) { return NotFound(); }
+
+            int sId = order.StatusId;
+
+            order.StatusId = sId == 1 ? 2 : sId == 2 ? 1 : 1;
+
+            await _context.SaveChangesAsync();
+            return Ok();
         }
 
         private OrderDto ToDto(Order o) =>

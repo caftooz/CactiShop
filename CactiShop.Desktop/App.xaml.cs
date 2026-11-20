@@ -46,6 +46,8 @@ public partial class App : Application
                 http.Timeout = TimeSpan.FromSeconds(15);
             });
             services.AddTransient<ICatalogService, CatalogService>();
+            services.AddTransient<IAuthService, AuthService>();
+            services.AddTransient<ICartService, CartService>();
         }
 
         services.AddSingleton<MainViewModel>();
