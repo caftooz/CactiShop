@@ -12,8 +12,8 @@ public class CatalogService(ApiClient _apiClient) : ICatalogService
     public async Task<IReadOnlyList<ProductListItemDto>> GetProductsAsync(ProductQuery query, CancellationToken ct = default) =>
         await _apiClient.GetAsync<List<ProductListItemDto>>("api/products" + BuildQuery(query), ct);
 
-    public Task<ProductDetailsDto> GetProductAsync(int id, CancellationToken ct = default) =>
-        _apiClient.GetAsync<ProductDetailsDto>($"api/products/{id}", ct);
+    public async Task<ProductDetailDto> GetProductAsync(int id, CancellationToken ct = default) =>
+        await _apiClient.GetAsync<ProductDetailDto>($"api/products/{id}", ct);
 
     private static string BuildQuery(ProductQuery f)
     {

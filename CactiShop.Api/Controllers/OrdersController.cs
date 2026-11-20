@@ -31,6 +31,14 @@ namespace CactiShop.Api.Controllers
             return Ok(ordersQuery.Select(ToDto));
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllOrders()
+        {
+            var orders = _context.Orders.Include(o => o.OrderProducts).ToList();
+            return Ok(orders);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateOrder(CreateOrderDto dto)
         {
@@ -68,7 +76,7 @@ namespace CactiShop.Api.Controllers
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            return Ok(new { order.Id });
+            return Ok(order.Id );
         }
         [HttpPatch("{id:int}")]
         [Authorize (Roles = "Admin")]

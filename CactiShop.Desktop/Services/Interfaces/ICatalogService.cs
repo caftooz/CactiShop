@@ -8,5 +8,5 @@ public interface ICatalogService
 
     Task<IReadOnlyList<ProductListItemDto>> GetProductsAsync(ProductQuery query, CancellationToken ct = default);
 
-    Task<ProductDetailsDto> GetProductAsync(int id, CancellationToken ct = default);
+    Task<ProductDetailDto> GetProductAsync(int id, CancellationToken ct = default);
 }
