@@ -1,6 +1,6 @@
 ﻿using System.Net.Http;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CactiShop.Desktop.Services.Api;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CactiShop.Desktop.ViewModels;
 
@@ -22,6 +22,11 @@ public abstract partial class PageViewModel : ObservableObject
     ///     Вызывается навигацией сразу после открытия страницы.
     /// </summary>
     public virtual Task OnNavigatedToAsync(object? parameter) => Task.CompletedTask;
+
+    /// <summary>
+    ///     Вызывается навигацией перед открытием следующей страницы.
+    /// </summary>
+    public virtual Task<bool> OnNavigatingFromAsync() => Task.FromResult(true);
 
     /// <summary>
     ///     Выполнить обращение к сервису: показать загрузку, поймать ошибку, положить её текст в ErrorMessage.

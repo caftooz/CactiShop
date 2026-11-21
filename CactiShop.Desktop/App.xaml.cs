@@ -1,4 +1,6 @@
-﻿using CactiShop.Desktop.Converters;
+﻿using System.Windows;
+using System.Windows.Threading;
+using CactiShop.Desktop.Factories;
 using CactiShop.Desktop.Services;
 using CactiShop.Desktop.Services.Api;
 using CactiShop.Desktop.Services.Fake;
@@ -8,8 +10,6 @@ using CactiShop.Desktop.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Windows;
-using System.Windows.Threading;
 
 namespace CactiShop.Desktop;
 
@@ -29,20 +29,32 @@ public partial class App : Application
 
     private static void ConfigureServices(IConfiguration config, IServiceCollection services)
     {
+        // Global services
         services.AddSingleton<ISessionService, SessionService>();
         services.AddSingleton<INavigationService, NavigationService>();
         services.AddSingleton<IDialogService, DialogService>();
 
-        if (config.GetValue<bool>("Api:UseFake"))
+        // Options
+        var apiOptions = config.GetSection(ApiOptions.SectionName).Get<ApiOptions>()
+                 ?? throw new InvalidOperationException("Нет секции Api в appsettings.json");
+
+        services.AddOptions<ApiOptions>()
+            .Bind(config.GetSection(ApiOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        // API services
+        if (apiOptions.UseFake)
         {
             services.AddSingleton<ICatalogService, FakeCatalogService>();
+            services.AddSingleton<IAuthService, FakeAuthService>();
+            services.AddSingleton<ICartService, FakeCartService>();
         }
         else
         {
-            var baseUrl = config["Api:BaseUrl"] ?? "https://localhost:5001/";
             services.AddHttpClient<ApiClient>(http =>
             {
-                http.BaseAddress = new Uri(baseUrl);
+                http.BaseAddress = new Uri(apiOptions.BaseUrl);
                 http.Timeout = TimeSpan.FromSeconds(15);
             });
             services.AddTransient<ICatalogService, CatalogService>();
@@ -51,10 +63,28 @@ public partial class App : Application
             services.AddTransient<IOrderService, OrderService>();
         }
 
+        // ImageService
+        services.AddHttpClient(ImageService.HttpClientName, http =>
+        {
+            http.BaseAddress = apiOptions.UseFake
+                ? new Uri(AppContext.BaseDirectory)
+                : new Uri(apiOptions.BaseUrl + "image/");
+            http.Timeout = TimeSpan.FromSeconds(15);
+        });
+        services.AddSingleton<IImageService, ImageService>();
+
+        // ViewModels
         services.AddSingleton<MainViewModel>();
+
         services.AddTransient<CatalogViewModel>();
         services.AddTransient<ProductDetailsViewModel>();
+        services.AddTransient<LoginViewModel>();
+        services.AddTransient<RegisterViewModel>();
 
+        // Factories
+        services.AddSingleton<ProductSummaryViewModelFactory>();
+
+        // Windows
         services.AddSingleton<MainWindow>();
     }
 
@@ -63,19 +93,14 @@ public partial class App : Application
         base.OnStartup(e);
         await _host.StartAsync();
 
-        var config = _host.Services.GetRequiredService<IConfiguration>();
-        ((ImageUrlConverter)Resources["ImageUrl"]).BaseAddress = config.GetValue<bool>("Api:UseFake")
-            ? new Uri(AppContext.BaseDirectory)
-            : new Uri(config["Api:BaseUrl"] ?? "https://localhost:5001/");
-
         _host.Services.GetRequiredService<MainWindow>().Show();
 
         await _host.Services.GetRequiredService<INavigationService>().NavigateToAsync<CatalogViewModel>();
     }
 
-    protected override async void OnExit(ExitEventArgs e)
+    protected override void OnExit(ExitEventArgs e)
     {
-        await _host.StopAsync();
+        _host.StopAsync(TimeSpan.FromSeconds(5)).GetAwaiter().GetResult();
         _host.Dispose();
         base.OnExit(e);
     }

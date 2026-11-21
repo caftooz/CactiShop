@@ -10,10 +10,10 @@
 ///     Средняя оценка. null — отзывов ещё нет.
 /// </param>
 public record ProductListItemDto(
-    int     Id,
-    string  Name,
+    int Id,
+    string Name,
     decimal Price,
-    string  CategoryName,
+    string CategoryName,
     string? ImageUrl,
     double? AverageRating,
-    int     StockQuantity);
+    int StockQuantity);

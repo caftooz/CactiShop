@@ -22,7 +22,7 @@ namespace CactiShop.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("CactiShop.Api.Data.Models.CartItems", b =>
+            modelBuilder.Entity("CactiShop.Api.Data.Models.CartItem", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
@@ -282,7 +282,7 @@ namespace CactiShop.Api.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("CactiShop.Api.Data.Models.CartItems", b =>
+            modelBuilder.Entity("CactiShop.Api.Data.Models.CartItem", b =>
                 {
                     b.HasOne("CactiShop.Api.Data.Models.Product", "Product")
                         .WithMany()
@@ -339,7 +339,7 @@ namespace CactiShop.Api.Migrations
                         .IsRequired();
 
                     b.HasOne("CactiShop.Api.Data.Models.Product", "Product")
-                        .WithMany()
+                        .WithMany("OrderProducts")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -397,7 +397,7 @@ namespace CactiShop.Api.Migrations
 
             modelBuilder.Entity("CactiShop.Api.Data.Models.Product", b =>
                 {
-                    b.Navigation("Orders");
+                    b.Navigation("OrderProducts");
 
                     b.Navigation("ProductReviews");
                 });

@@ -1,27 +1,29 @@
-﻿using CactiShop.Contracts.Catalog;
+﻿using System.Collections.ObjectModel;
+using System.Globalization;
+using CactiShop.Contracts.Catalog;
+using CactiShop.Desktop.Factories;
+using CactiShop.Desktop.Models;
 using CactiShop.Desktop.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
-using System.Globalization;
 
 namespace CactiShop.Desktop.ViewModels;
 
 public partial class CatalogViewModel(
-    ICatalogService _catalogService, 
-    INavigationService _navigationService
+    ICatalogService _catalogService,
+    ProductSummaryViewModelFactory _factory
     ) : PageViewModel
 {
-    private static readonly CategoryDto AllCategories = new(0, "Все категории");
-    public ObservableCollection<ProductListItemDto> Products { get; } = [];
-    public ObservableCollection<CategoryDto> Categories { get; } = [];
+    private static readonly Category AllCategories = new(0, "Все категории");
+    public ObservableCollection<ProductSummaryViewModel> Products { get; } = new();
+    public ObservableCollection<Category> Categories { get; } = [];
 
     [ObservableProperty]
     private string _searchText = "";
 
 
     [ObservableProperty]
-    private CategoryDto? _selectedCategory;
+    private Category? _selectedCategory;
 
     [ObservableProperty]
     private string _minPriceText = "";
@@ -39,11 +41,22 @@ public partial class CatalogViewModel(
         var categories = await _catalogService.GetCategoriesAsync();
         Categories.Clear();
         Categories.Add(AllCategories);
-        foreach (var c in categories) Categories.Add(c);
+        if (categories is not null)
+            foreach (var c in categories) Categories.Add(c);
         SelectedCategory = AllCategories;
 
         await LoadProductsAsync();
     });
+
+    public override async Task<bool> OnNavigatingFromAsync()
+    {
+        List<Task> tasks = new();
+        foreach (var p in Products)
+            tasks.Add(p.DisposeAsync().AsTask());
+
+        await Task.WhenAll(tasks);
+        return true;
+    }
 
     [RelayCommand]
     private Task SearchAsync() => RunAsync(LoadProductsAsync);
@@ -57,10 +70,6 @@ public partial class CatalogViewModel(
         SelectedCategory = AllCategories;
         return RunAsync(LoadProductsAsync);
     }
-
-    [RelayCommand]
-    private Task OpenProductAsync(ProductListItemDto? product) => 
-        product is null ? Task.CompletedTask : _navigationService.NavigateToAsync<ProductDetailsViewModel>(product.Id);
 
     private async Task LoadProductsAsync()
     {
@@ -76,10 +85,20 @@ public partial class CatalogViewModel(
             MinPrice: min,
             MaxPrice: max);
 
-        var items = await _catalogService.GetProductsAsync(query);
+        var items = await _catalogService.GetCatalogAsync(query);
 
         Products.Clear();
-        foreach (var p in items) Products.Add(p);
+
+        List<Task> tasks = new();
+        foreach (var p in items)
+        {
+            var pvm = _factory.Create(p);
+            Products.Add(pvm);
+            tasks.Add(pvm.LoadDataAsync());
+        }
+
+        await Task.WhenAll(tasks);
+
         IsLoaded = true;
         OnPropertyChanged(nameof(IsEmpty));
     }
