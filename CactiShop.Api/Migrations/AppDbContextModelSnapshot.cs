@@ -74,11 +74,11 @@ namespace CactiShop.Api.Migrations
                     b.Property<int?>("OrderPointId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("StatusId")
+                    b.Property<int?>("ProductId")
                         .HasColumnType("integer");
 
-                    b.Property<decimal>("TotalPrice")
-                        .HasColumnType("numeric");
+                    b.Property<int>("StatusId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
@@ -86,6 +86,8 @@ namespace CactiShop.Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("OrderPointId");
+
+                    b.HasIndex("ProductId");
 
                     b.HasIndex("StatusId");
 
@@ -304,6 +306,10 @@ namespace CactiShop.Api.Migrations
                     b.HasOne("CactiShop.Api.Data.Models.OrderPoint", "OrderPoint")
                         .WithMany()
                         .HasForeignKey("OrderPointId");
+
+                    b.HasOne("CactiShop.Api.Data.Models.Product", null)
+                        .WithMany("Orders")
+                        .HasForeignKey("ProductId");
 
                     b.HasOne("CactiShop.Api.Data.Models.OrderStatus", "Status")
                         .WithMany()

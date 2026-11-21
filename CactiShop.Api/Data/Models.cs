@@ -1,4 +1,6 @@
-﻿namespace CactiShop.Api.Data.Models;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace CactiShop.Api.Data.Models;
 
 public class User
 {
@@ -62,7 +64,8 @@ public class Order
     public int? OrderPointId { get; set; }
     public string? DeliveryAddress { get; set; }
     public DateOnly Date { get; set; }
-    public decimal TotalPrice { get; set; }
+    [NotMapped]
+    public decimal TotalPrice => OrderProducts.Sum(op => op.ProductPrice * op.ProductQuantity);
 
     public User User { get; set; } = null!;
     public OrderStatus Status { get; set; } = null!;
