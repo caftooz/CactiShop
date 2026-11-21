@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace CactiShop.Contracts.Orders;
+﻿namespace CactiShop.Contracts.Orders;
 
 public record CreateOrderDto(
     int? OrderPointId,

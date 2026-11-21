@@ -1,10 +1,7 @@
-﻿using CactiShop.Contracts.Orders;
+﻿using System.Collections.ObjectModel;
+using CactiShop.Contracts.Orders;
 using CactiShop.Desktop.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Text;
 
 namespace CactiShop.Desktop.ViewModels;
 
@@ -22,7 +19,7 @@ internal partial class OrderViewModel(
     {
         var orders = await _orderService.GetUserOrdersAsync();
         Orders.Clear();
-        foreach(var order in orders) Orders.Add(order);
+        foreach (var order in orders) Orders.Add(order);
         IsLoaded = true;
     });
 }

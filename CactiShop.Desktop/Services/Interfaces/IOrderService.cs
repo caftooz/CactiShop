@@ -1,7 +1,4 @@
 ﻿using CactiShop.Contracts.Orders;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CactiShop.Desktop.Services.Interfaces;
 
