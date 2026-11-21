@@ -59,7 +59,8 @@ public partial class App : Application
             });
             services.AddTransient<ICatalogService, CatalogService>();
             services.AddTransient<IAuthService, AuthService>();
-            services.AddTransient<ICartService, CartService>();
+            // TODO: Реализовать CartService
+            // services.AddTransient<ICartService, CartService>();
             services.AddTransient<IOrderService, OrderService>();
         }
 
