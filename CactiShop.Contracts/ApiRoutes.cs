@@ -1,4 +1,6 @@
-﻿namespace CactiShop.Contracts;
+﻿using CactiShop.Contracts.Orders;
+
+namespace CactiShop.Contracts;
 
 public static class ApiRoutes
 {
@@ -26,5 +28,13 @@ public static class ApiRoutes
         public const string Items = "api/cart";
         public const string ItemById = Items + "/{productId:int}";
         public static string ItemByIdUrl(int productId) => $"{Items}/{productId}";
+    }
+
+    public static class Orders
+    {
+        public const string OrdersUser = "api/orders";
+        public const string AllOrders = "api/orders/all";
+        public static string OrderById(int orderdId) => $"{OrdersUser}/{orderdId}";
+        public const string CreateOrder = "api/orders";
     }
 }
