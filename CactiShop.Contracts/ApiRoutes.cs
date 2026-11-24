@@ -1,6 +1,4 @@
-﻿using CactiShop.Contracts.Orders;
-
-namespace CactiShop.Contracts;
+﻿namespace CactiShop.Contracts;
 
 public static class ApiRoutes
 {
