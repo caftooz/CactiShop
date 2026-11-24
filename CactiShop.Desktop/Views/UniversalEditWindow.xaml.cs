@@ -50,6 +50,22 @@ public partial class UniversalEditWindow : Window
                     inputControl = new CheckBox { Content = "Да / Нет" };
                     inputControl.SetBinding(CheckBox.IsCheckedProperty, new Binding(config.PropertyName) { Source = _targetObject });
                     break;
+                case EditType.Array:
+                    ComboBox comboBox = new ComboBox()
+                    {
+                        ItemsSource = config.ItemsSource
+                    };
+
+                    comboBox.SetBinding(
+                        ComboBox.SelectedValueProperty,
+                        new Binding(config.PropertyName)
+                        {
+                            Source = _targetObject,
+                            UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
+                        });
+
+                    inputControl = comboBox;
+                    break;
                 case EditType.Image:
                     StackPanel imageGroup = new StackPanel();
 

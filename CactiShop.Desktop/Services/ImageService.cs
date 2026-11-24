@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.IO;
 using System.Net.Http;
-using System.Security.Cryptography;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CactiShop.Contracts;
@@ -27,13 +26,14 @@ public class ImageService(IHttpClientFactory _httpFactory, ILogger<ImageService>
         return _cache.GetOrAdd(url, u => new Lazy<Task<ImageSource>>(() => LoadAsync(u))).Value;
     }
 
-    public async Task<string> UploadImageAsync(string filename){
+    public async Task<string> UploadImageAsync(string filename)
+    {
         using (var client = _httpFactory.CreateClient())
         using (var content = new MultipartFormDataContent())
         using (var fileStream = File.OpenRead(filename))
         {
             var streamContent = new StreamContent(fileStream);
-            content.Add(streamContent, "file", System.IO.Path.GetFileName(filename));
+            content.Add(streamContent, "file", Path.GetFileName(filename));
 
             return await apiClient.PostAsync<string>(ApiRoutes.Images.UploadImage, content);
         }
