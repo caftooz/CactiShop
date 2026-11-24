@@ -1,16 +1,15 @@
 ﻿using System.Collections.ObjectModel;
-using CactiShop.Contracts.Orders;
+using CactiShop.Desktop.Models;
 using CactiShop.Desktop.Services.Interfaces;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CactiShop.Desktop.ViewModels;
 
 internal partial class OrderViewModel(
-    IOrderService _orderService,
-    INavigationService _navigationService
+    IOrderService _orderService
     ) : PageViewModel
 {
-    public ObservableCollection<OrderDto> Orders { get; } = new();
+    public ObservableCollection<Order> Orders { get; } = new();
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsEmpty))]
     private bool _isLoaded = false;
