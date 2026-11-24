@@ -35,4 +35,9 @@ public static class ApiRoutes
         public static string OrderById(int orderdId) => $"{OrdersUser}/{orderdId}";
         public const string CreateOrder = "api/orders";
     }
+
+    public static class Images
+    {
+        public const string UploadImage = "api/images/upload";
+    }
 }
