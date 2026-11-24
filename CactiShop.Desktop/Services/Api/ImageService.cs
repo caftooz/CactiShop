@@ -4,11 +4,10 @@ using System.Net.Http;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CactiShop.Contracts;
-using CactiShop.Desktop.Services.Api;
 using CactiShop.Desktop.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace CactiShop.Desktop.Services;
+namespace CactiShop.Desktop.Services.Api;
 
 public class ImageService(IHttpClientFactory _httpFactory, ILogger<ImageService> _logger, ApiClient apiClient) : IImageService
 {

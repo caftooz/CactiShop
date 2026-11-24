@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using CactiShop.Desktop.Enums;
 using CactiShop.Desktop.Services;
+using CactiShop.Desktop.Services.Interfaces;
 
 namespace CactiShop.Desktop.Views;
 /// <summary>
@@ -11,26 +12,45 @@ namespace CactiShop.Desktop.Views;
 public partial class UniversalEditWindow : Window
 {
     private object _targetObject;
-    public UniversalEditWindow(object targetObject, List<FieldConfig> configs, ImageService imageService)
+    internal UniversalEditWindow(object targetObject, EditConfig config, IImageService imageService)
     {
         InitializeComponent();
         _targetObject = targetObject;
 
-        foreach (FieldConfig config in configs)
+        DeleteButton.Click += (s, e) =>
         {
-            TextBlock label = new TextBlock { Text = config.Label };
+            config.OnDelete(s);
+            Close();
+        };
+        SaveButton.Click += (s, e) =>
+        {
+            config.OnChange(s);
+            Close();
+        };
+        foreach (FieldConfig fieldConfig in config.FieldConfigs)
+        {
+            TextBlock label = new TextBlock { Text = fieldConfig.Label };
             FieldsContainer.Children.Add(label);
 
             FrameworkElement inputControl;
 
-            switch (config.EditType)
+            switch (fieldConfig.EditType)
             {
+                case EditType.ReadOnly:
+                    inputControl = new TextBlock();
+                    inputControl.SetBinding(
+                        TextBlock.TextProperty,
+                        new Binding(fieldConfig.PropertyName)
+                        {
+                            Source = _targetObject
+                        });
+                    break;
                 case EditType.Number:
                 case EditType.Text:
                     inputControl = new TextBox();
                     inputControl.SetBinding(
                         TextBox.TextProperty,
-                        new Binding(config.PropertyName)
+                        new Binding(fieldConfig.PropertyName)
                         {
                             Source = _targetObject,
                             UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
@@ -40,7 +60,7 @@ public partial class UniversalEditWindow : Window
                     inputControl = new DatePicker();
                     inputControl.SetBinding(
                         DatePicker.SelectedDateProperty,
-                        new Binding(config.PropertyName)
+                        new Binding(fieldConfig.PropertyName)
                         {
                             Source = _targetObject,
                             UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
@@ -48,17 +68,19 @@ public partial class UniversalEditWindow : Window
                     break;
                 case EditType.CheckBox:
                     inputControl = new CheckBox { Content = "Да / Нет" };
-                    inputControl.SetBinding(CheckBox.IsCheckedProperty, new Binding(config.PropertyName) { Source = _targetObject });
+                    inputControl.SetBinding(CheckBox.IsCheckedProperty, new Binding(fieldConfig.PropertyName) { Source = _targetObject });
                     break;
                 case EditType.Array:
                     ComboBox comboBox = new ComboBox()
                     {
-                        ItemsSource = config.ItemsSource
+                        ItemsSource = fieldConfig.ItemsSource,
+                        DisplayMemberPath = fieldConfig.MemberPath,
+                        SelectedValuePath = fieldConfig.MemberPath
                     };
 
                     comboBox.SetBinding(
                         ComboBox.SelectedValueProperty,
-                        new Binding(config.PropertyName)
+                        new Binding(fieldConfig.PropertyName)
                         {
                             Source = _targetObject,
                             UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
@@ -70,7 +92,7 @@ public partial class UniversalEditWindow : Window
                     StackPanel imageGroup = new StackPanel();
 
                     Image img = new Image { Height = 100, HorizontalAlignment = HorizontalAlignment.Left };
-                    img.SetBinding(Image.SourceProperty, new Binding(config.PropertyName)
+                    img.SetBinding(Image.SourceProperty, new Binding(fieldConfig.PropertyName)
                     {
                         Source = _targetObject,
                     });
@@ -89,7 +111,6 @@ public partial class UniversalEditWindow : Window
                             try
                             {
                                 string serverFilename = await imageService.UploadImageAsync(dlg.FileName);
-
                             }
                             catch (Exception ex)
                             {

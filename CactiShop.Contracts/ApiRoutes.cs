@@ -31,13 +31,18 @@ public static class ApiRoutes
     public static class Orders
     {
         public const string OrdersUser = "api/orders";
-        public const string AllOrders = "api/orders/all";
         public static string OrderById(int orderdId) => $"{OrdersUser}/{orderdId}";
         public const string CreateOrder = "api/orders";
+
+        public const string GetOrderPoints = "api/orders/order-points";
     }
 
-    public static class Images
+    public static class Admin
     {
-        public const string UploadImage = "api/images/upload";
+        public const string AllOrders = "api/admin/orders/all";
+        public const string AddProduct = "api/admin/catalog";
+        public const string UploadImage = "api/admin/upload-image";
+        public const string AllReviews = "api/admin/rewiews";
+        public const string AllOrderStatuses = "api/admin/order-statuses";
     }
 }

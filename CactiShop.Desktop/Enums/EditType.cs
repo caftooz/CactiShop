@@ -4,6 +4,7 @@
 /// </summary>
 public enum EditType
 {
+    ReadOnly,
     Text,
     Number,
     Date,

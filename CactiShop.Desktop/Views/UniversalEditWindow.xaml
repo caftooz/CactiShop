@@ -18,8 +18,9 @@
         </ScrollViewer>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="Сохранить" Width="80" Click="Save_Click" Margin="0,0,10,0"/>
-            <Button Content="Отмена" Width="80" Click="Cancel_Click"/>
+            <Button x:Name="DeleteButton" Content="Удалить" Width="80" Margin="0,0,10,0" Background="Red"/>
+            <Button x:Name="SaveButton" Content="Сохранить" Width="80" Margin="0,0,10,0" Background="LawnGreen"/>
+            <Button x:Name="CancelButton" Content="Отмена" Width="80" Margin="0,0,10,0"/>
         </StackPanel>
     </Grid>
 </Window>
