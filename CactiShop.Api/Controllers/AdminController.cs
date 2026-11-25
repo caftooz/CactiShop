@@ -100,7 +100,8 @@ public class AdminController : ControllerBase
     }
 
     [HttpDelete(ApiRoutes.Admin.DeleteProduct)]
-    public async Task<IActionResult> DeleteProduct(int id) {
+    public async Task<IActionResult> DeleteProduct(int id)
+    {
         var product = await _context.Products.FindAsync(id);
         if (product == null) return BadRequest(new { message = "Продукт не найден" });
         _context.Remove(product);
