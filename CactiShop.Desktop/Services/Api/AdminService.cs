@@ -27,8 +27,8 @@ internal class AdminService(ApiClient apiClient) : IAdminService
         return dtos;
     }
 
-    public async Task<object> UpdateProductAsync(ProductSummary productSummaryDto, CancellationToken ct = default) =>
-        apiClient.PostAsync<ProductSummary>(ApiRoutes.Admin.UpdateProduct, productSummaryDto, ct);
+    public async Task<object> UpdateProductAsync(UpdateProductDto productSummaryDto, CancellationToken ct = default) =>
+        apiClient.PostAsync<UpdateProductDto>(ApiRoutes.Admin.UpdateProduct, productSummaryDto, ct);
     public async Task<object> DeleteProductAsync(int productId, CancellationToken ct = default) =>
         apiClient.PostAsync<ProductSummary>(ApiRoutes.Admin.DeleteProduct, productId, ct);
     public async Task<object> UpdateCategoryAsync(Category category, CancellationToken ct = default) =>

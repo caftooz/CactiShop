@@ -63,11 +63,12 @@ internal class AdminViewModel
 
         List<FieldConfig> productConfigs = new()
         {
-            new FieldConfig("Id", nameof(ProductSummary.Id), EditType.ReadOnly),
-            new FieldConfig("Название", nameof(ProductSummary.Name), EditType.Text),
-            new FieldConfig("Категория", nameof(ProductSummary.CategoryName), EditType.Array, categories, nameof(CategoryDto.Name)),
-            new FieldConfig("Цена", nameof(ProductSummary.Price), EditType.Number),
-            new FieldConfig("Изображение", nameof(ProductSummary.ImageUrl), EditType.Image)
+            new FieldConfig("Id", nameof(ProductDetailsDto.Item.Id), EditType.ReadOnly),
+            new FieldConfig("Название", nameof(ProductDetailsDto.Item.Name), EditType.Text),
+            new FieldConfig("Категория", nameof(ProductDetailsDto.Item.CategoryName), EditType.Array, categories, nameof(CategoryDto.Name)),
+            new FieldConfig("Цена", nameof(ProductDetailsDto.Item.Price), EditType.Number),
+            new FieldConfig("Изображение", nameof(ProductDetailsDto.Item.ImageUrl), EditType.Image),
+            new FieldConfig("Описание", nameof(ProductDetailsDto.Description), EditType.Text)
         };
 
         List<FieldConfig> categoryConfigs = new()
@@ -98,9 +99,10 @@ internal class AdminViewModel
             new FieldConfig("Товар", nameof(ProductReviewListDto.ProductName), EditType.ReadOnly)
         };
 
-        var productEditConfig = new EditConfig<ProductSummary>(productConfigs,
-            ps => _adminService.UpdateProductAsync(ps),
-            ps => _adminService.DeleteProductAsync(ps.Id));
+        //Вот здесь вместо ProductSummary подгружается UpdateProductDto
+        var productEditConfig = new EditConfig<object>(productConfigs,
+            ps => _adminService.UpdateProductAsync(ToUpdateProductDto((ps as ProductDetailsDto)!)),
+            ps => _adminService.DeleteProductAsync((ps as ProductDetailsDto)!.Item.Id));
 
         var categoryConfig = new EditConfig<Category>(categoryConfigs,
             c => _adminService.UpdateCategoryAsync(c),
@@ -116,16 +118,22 @@ internal class AdminViewModel
         var productReviewsConfig = new EditConfig<ProductReviewListDto>(productReviewsConfigs,
             _ => MessageBox.Show("Отзыв можно только удалить"), pr => _adminService.DeleteReviewAsync(pr.Id));
 
-        _tabControl.Items.Add(CreateTab("Товары", productsData, productEditConfig));
+        //Костылек
+        Action<object> onProductEdit = async ps =>
+        {
+            await _catalogService.GetProductAsync((ps as ProductSummary)!.Id);
+        };
+
+        _tabControl.Items.Add(CreateTab("Товары", productsData, productEditConfig, onProductEdit));
         _tabControl.Items.Add(CreateTab("Категории", categories, categoryConfig));
         _tabControl.Items.Add(CreateTab("Заказы", ordersData, orderConfig));
         _tabControl.Items.Add(CreateTab("Пункты выдачи", orderPoints, orderPointsConfig));
         _tabControl.Items.Add(CreateTab("Отзывы", reviewsData, productReviewsConfig));
     }
 
-    private TabItem CreateTab(string name, IEnumerable<object> collection, IEditConfig config)
+    private TabItem CreateTab(string name, IEnumerable<object> collection, IEditConfig config, Action<object>? onEdit = null)
     {
-        Action<object> onEdit = o => new UniversalEditWindow(o, config, _imageService).ShowDialog();
+        onEdit ??= o => new UniversalEditWindow(o, config, _imageService).ShowDialog();
 
         var collectionGrid = new CollectionGridView(collection, onEdit);
 
@@ -135,4 +143,14 @@ internal class AdminViewModel
             Content = collectionGrid
         };
     }
+
+    private UpdateProductDto ToUpdateProductDto(ProductDetailsDto dto) =>
+        new UpdateProductDto(
+            dto.Item.Id,
+            dto.Item.Name,
+            dto.Item.CategoryName,
+            dto.Item.Price,
+            dto.Item.ImageUrl,
+            dto.Description
+        );
 }

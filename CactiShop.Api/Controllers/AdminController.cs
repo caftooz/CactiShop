@@ -2,6 +2,8 @@
 using CactiShop.Api.Data.Models;
 using CactiShop.Contracts;
 using CactiShop.Contracts.Catalog;
+using CactiShop.Contracts.OrderPoints;
+using CactiShop.Contracts.Orders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -79,5 +81,119 @@ public class AdminController : ControllerBase
         }
 
         return Ok(new { fileName = uniqueFilename });
+    }
+
+    [HttpPost(ApiRoutes.Admin.UpdateProduct)]
+    public async Task<IActionResult> UpdateProduct(UpdateProductDto dto)
+    {
+        var product = await _context.Products.FindAsync(dto.Id);
+        if (product == null) return BadRequest(new { message = "Продукт не найден" });
+        var category = await _context.Categories.FirstOrDefaultAsync(c => c.Name == dto.CategoryName);
+        if (category == null) return BadRequest(new { message = $"Категория {dto.CategoryName} не найдена" });
+        product.Name = dto.Name;
+        product.Category = category;
+        product.Price = dto.Price;
+        product.ImagePath = dto.ImageUrl ?? "";
+        product.Description = dto.Description;
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    [HttpDelete(ApiRoutes.Admin.DeleteProduct)]
+    public async Task<IActionResult> DeleteProduct(int id) {
+        var product = await _context.Products.FindAsync(id);
+        if (product == null) return BadRequest(new { message = "Продукт не найден" });
+        _context.Remove(product);
+        await _context.SaveChangesAsync();
+        return NoContent();
+    }
+
+    [HttpPut(ApiRoutes.Admin.UpdateCategory)]
+    public async Task<IActionResult> UpdateCategory(Category category, CancellationToken ct = default)
+    {
+        var existingCategory = await _context.Categories.FindAsync(new object[] { category.Id }, ct);
+        if (existingCategory == null) return BadRequest(new { message = "Категория не найдена" });
+
+        existingCategory.Name = category.Name;
+        await _context.SaveChangesAsync(ct);
+        return Ok();
+    }
+
+    [HttpDelete(ApiRoutes.Admin.DeleteCategory)]
+    public async Task<IActionResult> DeleteCategory(int categoryId, CancellationToken ct = default)
+    {
+        var category = await _context.Categories.FindAsync(new object[] { categoryId }, ct);
+        if (category == null) return BadRequest(new { message = "Категория не найдена" });
+
+        _context.Remove(category);
+        await _context.SaveChangesAsync(ct);
+        return NoContent();
+    }
+
+    [HttpPut(ApiRoutes.Admin.UpdateOrder)]
+    public async Task<IActionResult> UpdateOrder(OrderDto order, CancellationToken ct = default)
+    {
+        var existingOrder = await _context.Orders
+            .Include(o => o.OrderProducts)
+            .FirstOrDefaultAsync(o => o.Id == order.Id, ct);
+
+        if (existingOrder == null) return BadRequest(new { message = "Заказ не найден" });
+
+        var status = await _context.OrderStatuses.FirstOrDefaultAsync(os => os.Name == order.Status);
+        if (status == null) return BadRequest(new { message = "Неизвестный передаваемый статус" });
+        existingOrder.Status = status;
+
+        var orderPoint = await _context.OrderPoints.FirstOrDefaultAsync(op => op.Address == order.OrderPoint);
+        if (orderPoint == null) return BadRequest(new { message = "Неизвестный пункт выдачи" });
+        existingOrder.OrderPoint = orderPoint;
+
+        existingOrder.DeliveryAddress = order.DeliveryAddress;
+
+        await _context.SaveChangesAsync(ct);
+        return Ok();
+    }
+
+    [HttpDelete(ApiRoutes.Admin.DeleteOrder)]
+    public async Task<IActionResult> DeleteOrder(int orderId, CancellationToken ct = default)
+    {
+        var order = await _context.Orders.FindAsync(orderId, ct);
+        if (order == null) return BadRequest(new { message = "Заказ не найден" });
+
+        _context.Remove(order);
+        await _context.SaveChangesAsync(ct);
+        return NoContent();
+    }
+
+    [HttpPut(ApiRoutes.Admin.UpdateOrderPoint)]
+    public async Task<IActionResult> UpdateOrderPoint(OrderPointDto orderPoint, CancellationToken ct = default)
+    {
+        var existingOrderPoint = await _context.OrderPoints.FindAsync(orderPoint.Id, ct);
+        if (existingOrderPoint == null) return BadRequest(new { message = "Пункт выдачи не найден" });
+
+        existingOrderPoint.Address = orderPoint.Address;
+        await _context.SaveChangesAsync(ct);
+        return Ok();
+    }
+
+    [HttpDelete(ApiRoutes.Admin.DeleteOrderPoint)]
+    public async Task<IActionResult> DeleteOrderPoint(int orderPointId, CancellationToken ct = default)
+    {
+        var orderPoint = await _context.OrderPoints.FindAsync(orderPointId, ct);
+        if (orderPoint == null) return BadRequest(new { message = "Пункт выдачи не найден" });
+
+        _context.Remove(orderPoint);
+        await _context.SaveChangesAsync(ct);
+        return NoContent();
+    }
+
+    [HttpDelete(ApiRoutes.Admin.DeleteReview)]
+    public async Task<IActionResult> DeleteReview(int reviewId, CancellationToken ct = default)
+    {
+        var review = await _context.ProductReviews.FindAsync(reviewId, ct);
+        if (review == null) return BadRequest(new { message = "Отзыв не найден" });
+
+        _context.Remove(review);
+        await _context.SaveChangesAsync(ct);
+        return NoContent();
     }
 }
