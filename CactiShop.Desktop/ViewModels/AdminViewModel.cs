@@ -1,5 +1,6 @@
 ﻿
 
+using System.Windows;
 using System.Windows.Controls;
 using CactiShop.Contracts.Catalog;
 using CactiShop.Contracts.OrderPoints;
@@ -12,26 +13,53 @@ using CactiShop.Desktop.Views;
 
 namespace CactiShop.Desktop.ViewModels;
 
-
-
+/// <summary>
+/// ViewModel для админ-панели, заполняет свой TabControl табами
+/// </summary>
 internal class AdminViewModel
 {
-    private TabControl _tabControl;
-    private IImageService _imageService;
-    private Dictionary<string, Func<Task<IEnumerable<object>>>> _tabLists = new();
+    private readonly TabControl _tabControl;
+    private readonly IImageService _imageService;
+    private readonly ICatalogService _catalogService;
+    private readonly IOrderService _orderService;
+    private readonly IAdminService _adminService;
 
-    internal AdminViewModel(IImageService imageService, ICatalogService catalogService, IOrderService orderService, IAdminService adminService)
+    public TabControl TabControl => _tabControl;
+
+    internal AdminViewModel(
+        IImageService imageService,
+        ICatalogService catalogService,
+        IOrderService orderService,
+        IAdminService adminService)
     {
         _tabControl = new TabControl();
         _imageService = imageService;
+        _catalogService = catalogService;
+        _orderService = orderService;
+        _adminService = adminService;
+    }
 
-        _tabLists.Add("Товары", async () => await catalogService.GetCatalogAsync(new ProductQuery()));
-        _tabLists.Add("Категории", async () => await catalogService.GetCategoriesAsync());
-        _tabLists.Add("Заказы", async () => await adminService.GetAllOrdersAsync());
-        _tabLists.Add("Пункты выдачи", async () => await orderService.GetOrderPointsAsync());
-        _tabLists.Add("Отзывы", async () => await adminService.GetAllReviewsAsync());
+    public async Task InitializeAsync()
+    {
+        var categoriesTask = _catalogService.GetCategoriesAsync();
+        var orderStatusesTask = _adminService.GetOrderStatusesAsync();
+        var orderPointsTask = _orderService.GetOrderPointsAsync();
 
-        var categories = catalogService.GetCategoriesAsync().GetAwaiter().GetResult();
+        await Task.WhenAll(categoriesTask, orderStatusesTask, orderPointsTask);
+
+        var categories = await categoriesTask;
+        var orderStatuses = await orderStatusesTask;
+        var orderPoints = await orderPointsTask;
+
+        var productsDataTask = _catalogService.GetCatalogAsync(new ProductQuery());
+        var ordersDataTask = _adminService.GetAllOrdersAsync();
+        var reviewsDataTask = _adminService.GetAllReviewsAsync();
+
+        await Task.WhenAll(productsDataTask, ordersDataTask, reviewsDataTask);
+
+        var productsData = await productsDataTask;
+        var ordersData = await ordersDataTask;
+        var reviewsData = await reviewsDataTask;
 
         List<FieldConfig> productConfigs = new()
         {
@@ -47,9 +75,6 @@ internal class AdminViewModel
             new FieldConfig("Id", nameof(Category.Id), EditType.ReadOnly),
             new FieldConfig("Название", nameof(Category.Name), EditType.Text)
         };
-
-        var orderStatuses = adminService.GetOrderStatusesAsync().GetAwaiter().GetResult();
-        var orderPoints = orderService.GetOrderPointsAsync().GetAwaiter().GetResult();
 
         List<FieldConfig> ordersConfigs = new()
         {
@@ -73,36 +98,41 @@ internal class AdminViewModel
             new FieldConfig("Товар", nameof(ProductReviewListDto.ProductName), EditType.ReadOnly)
         };
 
-        var productEditConfig = new EditConfig
-        {
-            FieldConfigs = productConfigs,
-            OnChange = o =>
-            {
-                if (o is ProductSummary ps)
-                {
-                    adminService.UpdateProduct(ps);
-                }
-            },
-            OnDelete = o =>
-            {
-                if (o is ProductSummary ps)
-                {
-                    adminService.DeleteProduct(ps.Id);
-                }
-            }
-        };
+        var productEditConfig = new EditConfig<ProductSummary>(productConfigs,
+            ps => _adminService.UpdateProductAsync(ps),
+            ps => _adminService.DeleteProductAsync(ps.Id));
+
+        var categoryConfig = new EditConfig<Category>(categoryConfigs,
+            c => _adminService.UpdateCategoryAsync(c),
+            c => _adminService.DeleteCategoryAsync(c.Id));
+
+        var orderConfig = new EditConfig<Order>(ordersConfigs,
+            or => _adminService.UpdateOrderAsync(or),
+            or => _adminService.DeleteOrderAsync(or.Id));
+
+        var orderPointsConfig = new EditConfig<OrderPointDto>(orderPointsConfigs,
+            op => _adminService.UpdateOrderPointAsync(op), op => _adminService.DeleteOrderPointAsync(op.Id));
+
+        var productReviewsConfig = new EditConfig<ProductReviewListDto>(productReviewsConfigs,
+            _ => MessageBox.Show("Отзыв можно только удалить"), pr => _adminService.DeleteReviewAsync(pr.Id));
+
+        _tabControl.Items.Add(CreateTab("Товары", productsData, productEditConfig));
+        _tabControl.Items.Add(CreateTab("Категории", categories, categoryConfig));
+        _tabControl.Items.Add(CreateTab("Заказы", ordersData, orderConfig));
+        _tabControl.Items.Add(CreateTab("Пункты выдачи", orderPoints, orderPointsConfig));
+        _tabControl.Items.Add(CreateTab("Отзывы", reviewsData, productReviewsConfig));
     }
 
-    private TabItem ChangeTab(string name, IEnumerable<object> collection, EditConfig config)
+    private TabItem CreateTab(string name, IEnumerable<object> collection, IEditConfig config)
     {
-        TabItem tabItem = new TabItem();
-
         Action<object> onEdit = o => new UniversalEditWindow(o, config, _imageService).ShowDialog();
 
-        var grid = new CollectionGridView(collection, onEdit);
+        var collectionGrid = new CollectionGridView(collection, onEdit);
 
-        tabItem.Content = grid;
-
-        return tabItem;
+        return new TabItem
+        {
+            Header = name,
+            Content = collectionGrid
+        };
     }
 }

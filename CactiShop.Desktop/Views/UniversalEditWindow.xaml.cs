@@ -12,19 +12,19 @@ namespace CactiShop.Desktop.Views;
 public partial class UniversalEditWindow : Window
 {
     private object _targetObject;
-    internal UniversalEditWindow(object targetObject, EditConfig config, IImageService imageService)
+    internal UniversalEditWindow(object targetObject, IEditConfig config, IImageService imageService)
     {
         InitializeComponent();
         _targetObject = targetObject;
 
         DeleteButton.Click += (s, e) =>
         {
-            config.OnDelete(s);
+            config.ExecuteChange(s);
             Close();
         };
         SaveButton.Click += (s, e) =>
         {
-            config.OnChange(s);
+            config.ExecuteDelete(s);
             Close();
         };
         foreach (FieldConfig fieldConfig in config.FieldConfigs)

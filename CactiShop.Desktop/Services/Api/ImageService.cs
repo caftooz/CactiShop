@@ -34,7 +34,7 @@ public class ImageService(IHttpClientFactory _httpFactory, ILogger<ImageService>
             var streamContent = new StreamContent(fileStream);
             content.Add(streamContent, "file", Path.GetFileName(filename));
 
-            return await apiClient.PostAsync<string>(ApiRoutes.Images.UploadImage, content);
+            return await apiClient.PostAsync<string>(ApiRoutes.Admin.UploadImage, content);
         }
     }
 

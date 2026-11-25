@@ -44,5 +44,14 @@ public static class ApiRoutes
         public const string UploadImage = "api/admin/upload-image";
         public const string AllReviews = "api/admin/rewiews";
         public const string AllOrderStatuses = "api/admin/order-statuses";
+        public const string UpdateProduct = "api/admin/product";
+        public const string DeleteProduct = "api/admin/product";
+        public const string UpdateCategory = "api/admin/category";
+        public const string DeleteCategory = "api/admin/category";
+        public const string UpdateOrder = "api/admin/orders";
+        public const string DeleteOrder = "api/admin/orders";
+        public const string UpdateOrderPoint = "api/admin/order-point";
+        public const string DeleteOrderPoint = "api/admin/order-point";
+        public const string DeleteReview = "api/admin/order-point";
     }
 }
