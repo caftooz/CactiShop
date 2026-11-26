@@ -15,7 +15,7 @@ public partial class CatalogViewModel(
     ) : PageViewModel
 {
     private static readonly Category AllCategories = new(0, "Все категории");
-    public ObservableCollection<ProductSummaryViewModel> Products { get; } = new();
+    public ObservableCollection<ProductSummaryViewModel> Products { get; private set; } = new();
     public ObservableCollection<Category> Categories { get; } = [];
 
     [ObservableProperty]
@@ -85,22 +85,22 @@ public partial class CatalogViewModel(
             MinPrice: min,
             MaxPrice: max);
 
+
         var items = await _catalogService.GetCatalogAsync(query);
 
-        Products.Clear();
+        var viewModels = await Task.Run(() => items.Select(p => _factory.Create(p)).ToList());
 
-        List<Task> tasks = new();
-        foreach (var p in items)
-        {
-            var pvm = _factory.Create(p);
-            Products.Add(pvm);
-            tasks.Add(pvm.LoadDataAsync());
-        }
 
-        await Task.WhenAll(tasks);
+        Products = new ObservableCollection<ProductSummaryViewModel>(viewModels);
 
         IsLoaded = true;
         OnPropertyChanged(nameof(IsEmpty));
+        OnPropertyChanged(nameof(Products));
+
+        //_ = Parallel.ForEachAsync(viewModels, new ParallelOptions { MaxDegreeOfParallelism = 4 }, async (vm, ct) =>
+        //{
+        //    await vm.LoadDataAsync().ConfigureAwait(false);
+        //});
     }
 
     private static bool TryReadPrice(string text, out decimal? value)

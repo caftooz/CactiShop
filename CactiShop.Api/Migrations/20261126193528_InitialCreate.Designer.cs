@@ -12,20 +12,20 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CactiShop.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261117073725_OrderTotalPrice")]
-    partial class OrderTotalPrice
+    [Migration("20261126193528_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.14")
+                .HasAnnotation("ProductVersion", "10.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("CactiShop.Api.Data.Models.CartItems", b =>
+            modelBuilder.Entity("CactiShop.Api.Data.Models.CartItem", b =>
                 {
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
@@ -77,9 +77,6 @@ namespace CactiShop.Api.Migrations
                     b.Property<int?>("OrderPointId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("ProductId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("StatusId")
                         .HasColumnType("integer");
 
@@ -89,8 +86,6 @@ namespace CactiShop.Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("OrderPointId");
-
-                    b.HasIndex("ProductId");
 
                     b.HasIndex("StatusId");
 
@@ -285,7 +280,7 @@ namespace CactiShop.Api.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("CactiShop.Api.Data.Models.CartItems", b =>
+            modelBuilder.Entity("CactiShop.Api.Data.Models.CartItem", b =>
                 {
                     b.HasOne("CactiShop.Api.Data.Models.Product", "Product")
                         .WithMany()
@@ -309,10 +304,6 @@ namespace CactiShop.Api.Migrations
                     b.HasOne("CactiShop.Api.Data.Models.OrderPoint", "OrderPoint")
                         .WithMany()
                         .HasForeignKey("OrderPointId");
-
-                    b.HasOne("CactiShop.Api.Data.Models.Product", null)
-                        .WithMany("Orders")
-                        .HasForeignKey("ProductId");
 
                     b.HasOne("CactiShop.Api.Data.Models.OrderStatus", "Status")
                         .WithMany()
@@ -342,7 +333,7 @@ namespace CactiShop.Api.Migrations
                         .IsRequired();
 
                     b.HasOne("CactiShop.Api.Data.Models.Product", "Product")
-                        .WithMany()
+                        .WithMany("OrderProducts")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -400,7 +391,7 @@ namespace CactiShop.Api.Migrations
 
             modelBuilder.Entity("CactiShop.Api.Data.Models.Product", b =>
                 {
-                    b.Navigation("Orders");
+                    b.Navigation("OrderProducts");
 
                     b.Navigation("ProductReviews");
                 });

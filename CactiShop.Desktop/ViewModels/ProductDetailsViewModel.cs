@@ -9,7 +9,9 @@ public partial class ProductDetailsViewModel(
     ICatalogService _catalogService,
     INavigationService _navigationService,
     IImageService _imageService,
-    ICartService _cartService
+    ICartService _cartService,
+    ISessionService _sessionService,
+    IDialogService _dialogService
     ) : PageViewModel
 {
 
@@ -27,7 +29,7 @@ public partial class ProductDetailsViewModel(
         var model = await _catalogService.GetProductAsync(id);
         HasModel = model != null;
 
-        if (model is not null)
+        if (HasModel)
         {
             _productId = model.Id;
             Name = model.Name;
@@ -35,22 +37,33 @@ public partial class ProductDetailsViewModel(
             PriceText = $"{model.Price:0.00} ₽";
             AvgRatingText = model.AvgRating == null ? "Нет оценок" : $"★ {model.AvgRating:0.0}";
             Description = model.Description;
+            Image = await _imageService.GetImageAsync(model.ImageUrl);
         }
 
-
-        Image = await _imageService.GetImageAsync(model?.ImageUrl);
         await LoadQuantityAsync();
     });
 
     public override async Task<bool> OnNavigatingFromAsync()
     {
+        if (!_sessionService.IsLoggedIn)
+            return await Task.FromResult(true);
         if (Quantity != await _cartService.GetProductQuantity(_productId))
         {
             await _cartService.SetProductQuantity(_productId, Quantity);
         }
         return await Task.FromResult(true);
     }
-    public async Task LoadQuantityAsync() { Quantity = await _cartService.GetProductQuantity(_productId); }
+    public async Task LoadQuantityAsync()
+    {
+        if (_sessionService.IsLoggedIn)
+        {
+            Quantity = await _cartService.GetProductQuantity(_productId);
+        }
+        else
+        {
+            Quantity = 0;
+        }
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasInCart))]
@@ -80,7 +93,16 @@ public partial class ProductDetailsViewModel(
     public void DecreaseQuantity() { if (Quantity > 0) Quantity--; }
 
     [RelayCommand]
-    public void AddToCart() => Quantity++;
+    public void AddToCart()
+    {
+        if (!_sessionService.IsLoggedIn)
+        {
+            _dialogService.ShowInfo("Для добавления в корзину необходимо войти");
+            return;
+        }
+
+        Quantity++;
+    }
 
     [RelayCommand]
     private void GoBack() => _navigationService.GoBack();

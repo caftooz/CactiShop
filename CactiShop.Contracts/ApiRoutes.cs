@@ -31,8 +31,10 @@ public static class ApiRoutes
     public static class Orders
     {
         public const string OrdersUser = "api/orders";
-        public static string OrderById(int orderdId) => $"{OrdersUser}/{orderdId}";
         public const string CreateOrder = "api/orders";
+
+        public const string ChangeOrderStatus = $"{OrdersUser}/id:int";
+        public static string OrderById(int orderdId) => $"{OrdersUser}/{orderdId}";
 
         public const string GetOrderPoints = "api/orders/order-points";
     }

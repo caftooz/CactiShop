@@ -6,27 +6,44 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace CactiShop.Desktop.ViewModels;
 
-public partial class ProductSummaryViewModel : ObservableObject, IAsyncDisposable
+public partial class ProductSummaryViewModel(
+    ProductSummary _model,
+    INavigationService _navService,
+    IImageService _imageService,
+    ICartService _cartService,
+    ISessionService _sessionService,
+    IDialogService _dialogService
+    ) : ObservableObject, IAsyncDisposable
 {
-    private ProductSummary _model;
-    private INavigationService _navService;
-    private IImageService _imageService;
-    private ICartService _cartService;
 
     private int _oldQuantity;
+    private bool _isDataLoaded;
 
-    public ProductSummaryViewModel(ProductSummary model, INavigationService navService, IImageService imageService, ICartService cartService)
-    {
-        _model = model;
-        _navService = navService;
-        _imageService = imageService;
-        _cartService = cartService;
-    }
-
+    [RelayCommand]
     public async Task LoadDataAsync()
     {
-        await LoadImageAsync();
-        await LoadQuantityAsync();
+        if (_isDataLoaded) return;
+        _isDataLoaded = true;
+
+        var imageTask = _imageService.GetImageAsync(_model.ImageUrl);
+        var qtyTask = _sessionService.IsLoggedIn
+            ? _cartService.GetProductQuantity(_model.Id)
+            : Task.FromResult(0);
+
+        await Task.WhenAll(imageTask, qtyTask).ConfigureAwait(false);
+
+        var img = await imageTask;
+        var qty = await qtyTask;
+
+        await App.Current.Dispatcher.InvokeAsync(() =>
+        {
+            Image = img;
+            if (qty != 0)
+            {
+                _oldQuantity = qty;
+                Quantity = qty;
+            }
+        }, System.Windows.Threading.DispatcherPriority.Background);
     }
 
     public bool HasInCart => Quantity > 0;
@@ -43,7 +60,15 @@ public partial class ProductSummaryViewModel : ObservableObject, IAsyncDisposabl
     [ObservableProperty]
     private ImageSource? _image;
     public async Task LoadImageAsync() => Image = await _imageService.GetImageAsync(_model.ImageUrl);
-    public async Task LoadQuantityAsync() { Quantity = await _cartService.GetProductQuantity(_model.Id); _oldQuantity = Quantity; }
+    public async Task LoadQuantityAsync()
+    {
+        if (_sessionService.IsLoggedIn)
+        {
+            Quantity = await _cartService.GetProductQuantity(_model.Id); _oldQuantity = Quantity;
+        }
+        else
+            Quantity = 0;
+    }
 
     [RelayCommand]
     public void IncreaseQuantity() { if (Quantity < 99) Quantity++; }
@@ -51,7 +76,17 @@ public partial class ProductSummaryViewModel : ObservableObject, IAsyncDisposabl
     public void DecreaseQuantity() { if (Quantity > 0) Quantity--; }
 
     [RelayCommand]
-    public void AddToCart() => Quantity++;
+    public void AddToCart()
+    {
+        if (!_sessionService.IsLoggedIn)
+        {
+            _dialogService.ShowInfo("Для добавления в корзину необходимо войти");
+            return;
+        }
+
+        Quantity++;
+    }
+
 
     [RelayCommand]
     public Task OpenProductAsync() =>
@@ -59,6 +94,8 @@ public partial class ProductSummaryViewModel : ObservableObject, IAsyncDisposabl
 
     public async ValueTask DisposeAsync()
     {
+        if (!_sessionService.IsLoggedIn)
+            return;
         if (Quantity == _oldQuantity)
             return;
         if (Quantity != await _cartService.GetProductQuantity(_model.Id))

@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:CactiShop.Desktop.Views"
              xmlns:vm="clr-namespace:CactiShop.Desktop.ViewModels"
+             xmlns:vwp="clr-namespace:WpfToolkit.Controls;assembly=VirtualizingWrapPanel"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:CatalogViewModel}">
 
@@ -59,53 +60,79 @@
                        Margin="0,0,0,12" Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}" />
         </StackPanel>
 
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"
-                      Visibility="{Binding IsBusy, Converter={StaticResource InverseBoolToVisibility}}">
-            <ItemsControl d:ItemsSource="{d:SampleData ItemCount=3}" ItemsSource="{Binding Products}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
+        <ListBox Grid.Row="2"
+                 ItemsSource="{Binding Products}"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 VirtualizingPanel.IsVirtualizing="True"
+                 VirtualizingPanel.VirtualizationMode="Recycling"
+                 VirtualizingPanel.CacheLength="1,1"
+                 VirtualizingPanel.CacheLengthUnit="Page">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <vwp:VirtualizingWrapPanel ItemSize="232,310"
+                                   AllowDifferentSizedItems="False" />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
 
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Button Style="{StaticResource CardButton}" Width="220"
-                                Margin="0,0,12,12"
-                                Command="{Binding OpenProductCommand}">
-                            <StackPanel>
-                                <Grid Height="140" Margin="0,0,0,10">
-                                    <Image Source="{Binding Image, TargetNullValue={StaticResource NoImage}, FallbackValue={StaticResource NoImage}}"
-                                           Stretch="Uniform"/>
-                                </Grid>
-                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
-                                <TextBlock Text="{Binding CategoryName}" Style="{StaticResource MutedText}" Margin="0,2,0,8"/>
-                                <DockPanel>
-                                    <TextBlock DockPanel.Dock="Right" Style="{StaticResource MutedText}" VerticalAlignment="Center"
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Padding" Value="0"/>
+                    <Setter Property="Margin" Value="0"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Focusable" Value="False"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <ContentPresenter />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Button Style="{StaticResource CardButton}" Width="220"
+                            Margin="0,0,12,12"
+                            Loaded="ProductCard_Loaded"
+                            DataContextChanged="ProductCard_DataContextChanged"
+                            Command="{Binding OpenProductCommand}">
+                        <StackPanel>
+                            <Grid Height="140" Margin="0,0,0,10">
+                                <Image Source="{Binding Image, TargetNullValue={StaticResource NoImage}, FallbackValue={StaticResource NoImage}}"
+                                       RenderOptions.BitmapScalingMode="LowQuality"
+                                       Stretch="Uniform"/>
+
+                            </Grid>
+                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                            <TextBlock Text="{Binding CategoryName}" Style="{StaticResource MutedText}" Margin="0,2,0,8"/>
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MutedText}" VerticalAlignment="Center"
                                                Text="{Binding AvgRatingText}"/>
-                                    <TextBlock FontSize="16" FontWeight="Bold" Text="{Binding PriceText}" />
-                                </DockPanel>
-                                <Button Content="В корзину" Visibility="{Binding HasInCart, Converter={StaticResource InverseBoolToVisibility}}"
+                                <TextBlock FontSize="16" FontWeight="Bold" Text="{Binding PriceText}" />
+                            </DockPanel>
+                            <Button Content="В корзину" Visibility="{Binding HasInCart, Converter={StaticResource InverseBoolToVisibility}}"
                                         Command="{Binding AddToCartCommand}"/>
-                                <Grid Visibility="{Binding HasInCart, Converter={StaticResource BoolToVisibility}}">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Button Grid.Column="0" Content="-" Command="{Binding DecreaseQuantityCommand}"/>
-                                    <TextBox Grid.Column="1" Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    <Button Grid.Column="2" Content="+" Command="{Binding IncreaseQuantityCommand}"/>
-                                </Grid>
-                                <!--<Border Style="{StaticResource DangerBadge}" HorizontalAlignment="Left" Margin="0,8,0,0"
+                            <Grid Visibility="{Binding HasInCart, Converter={StaticResource BoolToVisibility}}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" Content="-" Command="{Binding DecreaseQuantityCommand}"/>
+                                <TextBox Grid.Column="1" Text="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Button Grid.Column="2" Content="+" Command="{Binding IncreaseQuantityCommand}"/>
+                            </Grid>
+                            <!--<Border Style="{StaticResource DangerBadge}" HorizontalAlignment="Left" Margin="0,8,0,0"
                                         Visibility="{Binding CanBuy, Converter={StaticResource InverseBoolToVisibility}}">
                                     <TextBlock Text="Нет в наличии" Foreground="{StaticResource DangerBrush}" FontSize="12" />
                                 </Border>-->
-                            </StackPanel>
-                        </Button>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+                        </StackPanel>
+                    </Button>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
     </Grid>
 </UserControl>

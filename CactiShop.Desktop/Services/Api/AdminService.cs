@@ -1,4 +1,6 @@
-﻿using CactiShop.Contracts;
+﻿using System.IO;
+using System.Net.Http;
+using CactiShop.Contracts;
 using CactiShop.Contracts.Catalog;
 using CactiShop.Contracts.OrderPoints;
 using CactiShop.Contracts.Orders;
@@ -26,6 +28,19 @@ internal class AdminService(ApiClient apiClient) : IAdminService
         var dtos = await apiClient.GetAsync<List<OrderStatusDto>>(ApiRoutes.Admin.AllOrderStatuses, ct);
         return dtos;
     }
+
+    public async Task<string> UploadImageAsync(string filename)
+    {
+        using (var content = new MultipartFormDataContent())
+        using (var fileStream = File.OpenRead(filename))
+        {
+            var streamContent = new StreamContent(fileStream);
+            content.Add(streamContent, "file", Path.GetFileName(filename));
+
+            return await apiClient.PostAsync<string>(ApiRoutes.Admin.UploadImage, content);
+        }
+    }
+
 
     public async Task<object> UpdateProductAsync(UpdateProductDto productSummaryDto, CancellationToken ct = default) =>
         apiClient.PostAsync<UpdateProductDto>(ApiRoutes.Admin.UpdateProduct, productSummaryDto, ct);

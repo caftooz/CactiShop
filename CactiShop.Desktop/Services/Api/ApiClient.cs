@@ -51,7 +51,7 @@ public class ApiClient(HttpClient _client, ISessionService _sessionService)
     private async Task<T> SendAsync<T>(HttpRequestMessage request, CancellationToken ct)
     {
         using var response = await SendRawAsync(request, ct);
-        var result = await response.Content.ReadFromJsonAsync<T>(cancellationToken: ct);
+        var result = await response.Content.ReadFromJsonAsync<T>(cancellationToken: ct).ConfigureAwait(false);
         return result ?? throw new ApiException((int)response.StatusCode, "Сервер вернул пустой ответ.");
     }
 

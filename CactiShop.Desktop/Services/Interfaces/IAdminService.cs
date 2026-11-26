@@ -24,4 +24,5 @@ internal interface IAdminService
     Task<object> DeleteOrderPointAsync(int orderPointId, CancellationToken ct = default);
 
     Task<object> DeleteReviewAsync(int reviewId, CancellationToken ct = default);
+    Task<string> UploadImageAsync(string filename);
 }

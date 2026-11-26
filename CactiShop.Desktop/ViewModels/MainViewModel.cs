@@ -46,7 +46,7 @@ public partial class MainViewModel : ObservableObject
     private void OpenProfile() => _dialogService.ShowInfo("Мой профиль");
 
     [RelayCommand]
-    private void OpenAdmin() => _dialogService.ShowInfo("Админ панель");
+    private Task OpenAdminAsync() => NavigationService.NavigateToAsync<AdminViewModel>(clearHistory: true);
 
     [RelayCommand]
     private Task SignInAsync() => NavigationService.NavigateToAsync<LoginViewModel>();

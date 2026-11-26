@@ -10,33 +10,24 @@ using CactiShop.Desktop.Models;
 using CactiShop.Desktop.Services;
 using CactiShop.Desktop.Services.Interfaces;
 using CactiShop.Desktop.Views;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace CactiShop.Desktop.ViewModels;
 
-/// <summary>
-/// ViewModel для админ-панели, заполняет свой TabControl табами
-/// </summary>
-internal class AdminViewModel
+internal partial class AdminViewModel
+    (
+        ICatalogService _catalogService,
+        IOrderService _orderService,
+        IAdminService _adminService
+    ) : PageViewModel
 {
-    private readonly TabControl _tabControl;
-    private readonly IImageService _imageService;
-    private readonly ICatalogService _catalogService;
-    private readonly IOrderService _orderService;
-    private readonly IAdminService _adminService;
+    [ObservableProperty]
+    private TabControl _adminTabControl;
 
-    public TabControl TabControl => _tabControl;
-
-    internal AdminViewModel(
-        IImageService imageService,
-        ICatalogService catalogService,
-        IOrderService orderService,
-        IAdminService adminService)
+    public override async Task OnNavigatedToAsync(object? parameter)
     {
-        _tabControl = new TabControl();
-        _imageService = imageService;
-        _catalogService = catalogService;
-        _orderService = orderService;
-        _adminService = adminService;
+        AdminTabControl = new TabControl();
+        await InitializeAsync();
     }
 
     public async Task InitializeAsync()
@@ -124,16 +115,17 @@ internal class AdminViewModel
             await _catalogService.GetProductAsync((ps as ProductSummary)!.Id);
         };
 
-        _tabControl.Items.Add(CreateTab("Товары", productsData, productEditConfig, onProductEdit));
-        _tabControl.Items.Add(CreateTab("Категории", categories, categoryConfig));
-        _tabControl.Items.Add(CreateTab("Заказы", ordersData, orderConfig));
-        _tabControl.Items.Add(CreateTab("Пункты выдачи", orderPoints, orderPointsConfig));
-        _tabControl.Items.Add(CreateTab("Отзывы", reviewsData, productReviewsConfig));
+        AdminTabControl.Items.Add(CreateTab("Товары", productsData, productEditConfig, onProductEdit));
+        AdminTabControl.Items.Add(CreateTab("Категории", categories, categoryConfig));
+        AdminTabControl.Items.Add(CreateTab("Заказы", ordersData, orderConfig));
+        AdminTabControl.Items.Add(CreateTab("Пункты выдачи", orderPoints, orderPointsConfig));
+        AdminTabControl.Items.Add(CreateTab("Отзывы", reviewsData, productReviewsConfig));
     }
 
     private TabItem CreateTab(string name, IEnumerable<object> collection, IEditConfig config, Action<object>? onEdit = null)
     {
-        onEdit ??= o => new UniversalEditWindow(o, config, _imageService).ShowDialog();
+        if (onEdit == null)
+            onEdit = o => new UniversalEditWindow(o, config, _adminService).ShowDialog();
 
         var collectionGrid = new CollectionGridView(collection, onEdit);
 

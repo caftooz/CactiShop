@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using CactiShop.Api.Data;
 using CactiShop.Api.Data.Models;
+using CactiShop.Contracts;
 using CactiShop.Contracts.Orders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CactiShop.Api.Controllers;
 
-[Route("api/[controller]")]
 [ApiController]
 [Authorize]
 public class OrdersController : ControllerBase
@@ -19,7 +19,7 @@ public class OrdersController : ControllerBase
         _context = context;
     }
 
-    [HttpGet]
+    [HttpGet(ApiRoutes.Orders.OrdersUser)]
     public async Task<IActionResult> GetUserOrders([FromBody] bool? byDesc)
     {
         int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -29,7 +29,7 @@ public class OrdersController : ControllerBase
         return Ok(ordersQuery.Select(ToDto));
     }
 
-    [HttpPost]
+    [HttpPost(ApiRoutes.Orders.CreateOrder)]
     public async Task<IActionResult> CreateOrder(CreateOrderDto dto)
     {
         if (dto.OrderProducts is null || !dto.OrderProducts.Any())
@@ -68,7 +68,7 @@ public class OrdersController : ControllerBase
 
         return Ok(order.Id);
     }
-    [HttpPatch("{id:int}")]
+    [HttpPatch(ApiRoutes.Orders.ChangeOrderStatus)]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> ChangeOrderStatus(int id)
     {

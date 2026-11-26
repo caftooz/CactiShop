@@ -20,7 +20,7 @@ public class CartController : ControllerBase
     }
 
     [HttpPatch(ApiRoutes.Cart.Items)]
-    public async Task<IActionResult> ChangeProductInCart(QuantityCartDto dto)
+    public async Task<IActionResult> ChangeProductInCart(SetCartProductQuantityDto dto)
     {
         if (dto.NewQuantity == 0)
             return await DeleteCartProduct(dto.ProductId);
@@ -51,6 +51,32 @@ public class CartController : ControllerBase
 
         await _context.SaveChangesAsync();
         return Ok();
+    }
+
+    [HttpGet(ApiRoutes.Cart.Items)]
+    public async Task<IActionResult> GetCartItems()
+    {
+        var userId = GetUserId();
+
+        var cartItems = await _context.CartItems.ToListAsync();
+
+        if (cartItems == null)
+            return BadRequest(new { message = "Товары не найдены" });
+
+        return Ok(cartItems.Select(ci => new CartProductQuantityDto(ci.ProductId, ci.Quantity)).ToList());
+    }
+
+    [HttpGet(ApiRoutes.Cart.ItemById)]
+    public async Task<IActionResult> GetProductQuantityInCart(int id)
+    {
+        var userId = GetUserId();
+
+        var cartItem = await _context.CartItems.FirstOrDefaultAsync(ci => ci.ProductId == id && ci.UserId == userId);
+
+        if (cartItem == null)
+            return BadRequest(new { message = "Товара нет в корзине" });
+
+        return Ok(new CartProductQuantityDto(cartItem.ProductId, cartItem.Quantity));
     }
 
     [HttpDelete(ApiRoutes.Cart.ItemById)]

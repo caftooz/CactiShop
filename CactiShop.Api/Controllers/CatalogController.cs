@@ -19,7 +19,8 @@ public class CatalogController : ControllerBase
     [HttpGet(ApiRoutes.Catalog.List)]
     public async Task<ActionResult<List<ProductListItemDto>>> GetCatalog([FromQuery] ProductQuery q)
     {
-        var query = _context.Products.Where(p => p.IsActive);
+        var query = _context.Products.Include(p => p.Category)
+                                     .Where(p => p.IsActive);
 
         if (!string.IsNullOrWhiteSpace(q.Query))
             query = query.Where(p => EF.Functions.ILike(p.Name, $"%{q.Query.Trim()}%"));
@@ -27,9 +28,7 @@ public class CatalogController : ControllerBase
         if (q.MinPrice is { } min) query = query.Where(p => p.Price >= min);
         if (q.MaxPrice is { } max) query = query.Where(p => p.Price <= max);
 
-        return await query.Select(p => new ProductListItemDto(
-            p.Id, p.Name, p.Price, p.Category.Name, p.ImagePath, p.AvgRate, p.Quantity))
-            .ToListAsync();
+        return await query.Select(p => ToListDto(p)).ToListAsync();
     }
 
     [HttpGet(ApiRoutes.Catalog.ById)]
@@ -38,7 +37,7 @@ public class CatalogController : ControllerBase
         var product = await _context.Products
             .Include(p => p.Category)
             .Include(p => p.ProductReviews)
-            .ThenInclude(pr => pr.User.Name).FirstOrDefaultAsync(p => p.Id == id);
+            .ThenInclude(pr => pr.User).FirstOrDefaultAsync(p => p.Id == id);
         if (product == null) return NotFound(new { message = "Товар не найден" });
 
         return Ok(new ProductDetailsDto(

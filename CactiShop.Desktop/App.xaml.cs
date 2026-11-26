@@ -59,9 +59,9 @@ public partial class App : Application
             });
             services.AddTransient<ICatalogService, CatalogService>();
             services.AddTransient<IAuthService, AuthService>();
-            // TODO: Реализовать CartService
-            // services.AddTransient<ICartService, CartService>();
+            services.AddTransient<ICartService, CartService>();
             services.AddTransient<IOrderService, OrderService>();
+            services.AddSingleton<IAdminService, AdminService>();
         }
 
         // ImageService
@@ -81,6 +81,7 @@ public partial class App : Application
         services.AddTransient<ProductDetailsViewModel>();
         services.AddTransient<LoginViewModel>();
         services.AddTransient<RegisterViewModel>();
+        services.AddTransient<AdminViewModel>();
 
         // Factories
         services.AddSingleton<ProductSummaryViewModelFactory>();

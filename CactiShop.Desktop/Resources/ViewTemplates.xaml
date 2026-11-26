@@ -19,4 +19,8 @@
         <views:RegisterView/>
     </DataTemplate>
 
+    <DataTemplate DataType="{x:Type vm:AdminViewModel}">
+        <views:AdminView/>
+    </DataTemplate>
+
 </ResourceDictionary>

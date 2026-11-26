@@ -12,7 +12,7 @@ namespace CactiShop.Desktop.Views;
 public partial class UniversalEditWindow : Window
 {
     private object _targetObject;
-    internal UniversalEditWindow(object targetObject, IEditConfig config, IImageService imageService)
+    internal UniversalEditWindow(object targetObject, IEditConfig config, IAdminService adminService)
     {
         InitializeComponent();
         _targetObject = targetObject;
@@ -110,7 +110,7 @@ public partial class UniversalEditWindow : Window
                         {
                             try
                             {
-                                string serverFilename = await imageService.UploadImageAsync(dlg.FileName);
+                                string serverFilename = await adminService.UploadImageAsync(dlg.FileName);
                             }
                             catch (Exception ex)
                             {
