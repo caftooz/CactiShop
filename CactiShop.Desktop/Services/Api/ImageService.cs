@@ -3,12 +3,13 @@ using System.IO;
 using System.Net.Http;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using CactiShop.Contracts;
 using CactiShop.Desktop.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace CactiShop.Desktop.Services;
+namespace CactiShop.Desktop.Services.Api;
 
-public class ImageService(IHttpClientFactory _httpFactory, ILogger<ImageService> _logger) : IImageService
+public class ImageService(IHttpClientFactory _httpFactory, ILogger<ImageService> _logger, ApiClient apiClient) : IImageService
 {
     public const string HttpClientName = "images";
     private const int DecodeWidth = 480;
@@ -22,6 +23,19 @@ public class ImageService(IHttpClientFactory _httpFactory, ILogger<ImageService>
             return Task.FromResult(NoImage);
 
         return _cache.GetOrAdd(url, u => new Lazy<Task<ImageSource>>(() => LoadAsync(u))).Value;
+    }
+
+    public async Task<string> UploadImageAsync(string filename)
+    {
+        using (var client = _httpFactory.CreateClient())
+        using (var content = new MultipartFormDataContent())
+        using (var fileStream = File.OpenRead(filename))
+        {
+            var streamContent = new StreamContent(fileStream);
+            content.Add(streamContent, "file", Path.GetFileName(filename));
+
+            return await apiClient.PostAsync<string>(ApiRoutes.Admin.UploadImage, content);
+        }
     }
 
     private async Task<ImageSource> LoadAsync(string url)

@@ -29,14 +29,6 @@ public class OrdersController : ControllerBase
         return Ok(ordersQuery.Select(ToDto));
     }
 
-    [Authorize(Roles = "Admin")]
-    [HttpGet("all")]
-    public async Task<IActionResult> GetAllOrders()
-    {
-        var orders = _context.Orders.Include(o => o.OrderProducts).ToList();
-        return Ok(orders);
-    }
-
     [HttpPost]
     public async Task<IActionResult> CreateOrder(CreateOrderDto dto)
     {

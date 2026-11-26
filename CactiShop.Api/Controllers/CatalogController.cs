@@ -2,7 +2,6 @@
 using CactiShop.Api.Data.Models;
 using CactiShop.Contracts;
 using CactiShop.Contracts.Catalog;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,10 +35,17 @@ public class CatalogController : ControllerBase
     [HttpGet(ApiRoutes.Catalog.ById)]
     public async Task<IActionResult> GetById(int id)
     {
-        var product = await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
+        var product = await _context.Products
+            .Include(p => p.Category)
+            .Include(p => p.ProductReviews)
+            .ThenInclude(pr => pr.User.Name).FirstOrDefaultAsync(p => p.Id == id);
         if (product == null) return NotFound(new { message = "Товар не найден" });
 
-        return Ok(new ProductDetailsDto(ToListDto(product), product.Description));
+        return Ok(new ProductDetailsDto(
+            ToListDto(product),
+            product.Description,
+            product.ProductReviews.Select(pr => new ProductReviewListDto(pr.Id, pr.Text, pr.User.Name, product.Name)
+        ).ToList()));
     }
 
     [HttpGet(ApiRoutes.Categories.List)]
@@ -47,25 +53,6 @@ public class CatalogController : ControllerBase
     {
         var categories = await _context.Categories.Select(c => new CategoryDto(c.Id, c.Name)).ToListAsync();
         return Ok(categories);
-    }
-
-    [HttpPost(ApiRoutes.Catalog.List)]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> AddProduct(CreateProductDto dto)
-    {
-        var product = new Product
-        {
-            Name = dto.Name,
-            CategoryId = dto.CategoryId,
-            Description = dto.Description,
-            Price = dto.Price,
-            Quantity = dto.Quantity,
-            ImagePath = dto.ImagePath,
-            IsActive = dto.IsActive
-        };
-        _context.Products.Add(product);
-        await _context.SaveChangesAsync();
-        return Created();
     }
 
     private static ProductListItemDto ToListDto(Product p) =>
