@@ -14,25 +14,39 @@ namespace CactiShop.Api.Controllers;
 [Authorize(Roles = "Admin")]
 public class AdminController : ControllerBase
 {
-    private AppDbContext _context;
-    public AdminController(AppDbContext context)
-    {
-        _context = context;
-    }
+    private readonly AppDbContext _context;
+    public AdminController(AppDbContext context) => _context = context;
 
     [HttpGet(ApiRoutes.Admin.AllOrders)]
     public async Task<IActionResult> GetAllOrders()
     {
-        var orders = _context.Orders.Include(o => o.OrderProducts).ToList();
-        return Ok(orders);
+        var orders = await _context.Orders
+            .AsNoTracking()
+            .Include(order => order.Status)
+            .Include(order => order.OrderPoint)
+            .Include(order => order.OrderProducts)
+                .ThenInclude(item => item.Product)
+            .OrderByDescending(order => order.Date)
+            .ToListAsync();
+
+        return Ok(orders.Select(order => new OrderDto(
+            order.Id,
+            order.Status.Name,
+            order.OrderPoint?.Address,
+            order.DeliveryAddress,
+            order.Date,
+            order.TotalPrice,
+            order.OrderProducts.Select(item => new OrderProductsDto(
+                item.Product.Name, item.ProductPrice, item.ProductQuantity)).ToList())).ToList());
     }
 
     [HttpGet(ApiRoutes.Admin.AllReviews)]
     public async Task<IActionResult> GetReviews()
     {
         var reviews = await _context.ProductReviews
-            .Include(pr => pr.User.Name)
-            .Include(pr => pr.Product.Name)
+            .AsNoTracking()
+            .Include(pr => pr.User)
+            .Include(pr => pr.Product)
             .Select(pr => new ProductReviewListDto(pr.Id, pr.Text, pr.User.Name, pr.Product.Name))
             .ToListAsync();
 
@@ -42,7 +56,7 @@ public class AdminController : ControllerBase
     [HttpGet(ApiRoutes.Admin.AllOrderStatuses)]
     public async Task<IActionResult> GetStatuses()
     {
-        var statuses = await _context.OrderStatuses.ToListAsync();
+        var statuses = await _context.OrderStatuses.AsNoTracking().ToListAsync();
         return Ok(statuses);
     }
 
@@ -67,15 +81,22 @@ public class AdminController : ControllerBase
     [HttpPost(ApiRoutes.Admin.UploadImage)]
     public async Task<IActionResult> UploadImage(IFormFile image)
     {
-        if (image == null || image.Length == 0) return BadRequest(new { message = "Файл не выбран" });
+        if (image is null || image.Length == 0)
+            return BadRequest(new { message = "Файл не выбран." });
+        if (image.Length > 5 * 1024 * 1024)
+            return BadRequest(new { message = "Размер изображения не должен превышать 5 МБ." });
 
-        var uploadsFolder = Path.Combine(AppContext.BaseDirectory, "wwwroot/image");
-        if (!Directory.Exists(uploadsFolder)) return BadRequest(new { message = $"Мамка не найдена: {uploadsFolder}" });
+        var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+        if (extension is not (".png" or ".jpg" or ".jpeg" or ".webp"))
+            return BadRequest(new { message = "Поддерживаются только PNG, JPG и WEBP." });
 
-        var uniqueFilename = Guid.NewGuid().ToString() + Path.GetExtension(uploadsFolder);
+        var uploadsFolder = Path.Combine(AppContext.BaseDirectory, "wwwroot", "image");
+        Directory.CreateDirectory(uploadsFolder);
+
+        var uniqueFilename = $"{Guid.NewGuid():N}{extension}";
         var filepath = Path.Combine(uploadsFolder, uniqueFilename);
 
-        using (var stream = new FileStream(filepath, FileMode.Create))
+        await using (var stream = new FileStream(filepath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
             await image.CopyToAsync(stream);
         }
@@ -103,7 +124,13 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> DeleteProduct(int id)
     {
         var product = await _context.Products.FindAsync(id);
-        if (product == null) return BadRequest(new { message = "Продукт не найден" });
+        if (product == null) return NotFound(new { message = "Продукт не найден" });
+        if (await _context.OrderProducts.AnyAsync(item => item.ProductId == id))
+        {
+            product.IsActive = false;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
         _context.Remove(product);
         await _context.SaveChangesAsync();
         return NoContent();
@@ -144,9 +171,12 @@ public class AdminController : ControllerBase
         if (status == null) return BadRequest(new { message = "Неизвестный передаваемый статус" });
         existingOrder.Status = status;
 
-        var orderPoint = await _context.OrderPoints.FirstOrDefaultAsync(op => op.Address == order.OrderPoint);
-        if (orderPoint == null) return BadRequest(new { message = "Неизвестный пункт выдачи" });
-        existingOrder.OrderPoint = orderPoint;
+        if (!string.IsNullOrWhiteSpace(order.OrderPoint))
+        {
+            var orderPoint = await _context.OrderPoints.FirstOrDefaultAsync(op => op.Address == order.OrderPoint, ct);
+            if (orderPoint == null) return BadRequest(new { message = "Неизвестный пункт выдачи" });
+            existingOrder.OrderPoint = orderPoint;
+        }
 
         existingOrder.DeliveryAddress = order.DeliveryAddress;
 
