@@ -38,7 +38,7 @@ public class CatalogController : ControllerBase
         var product = await _context.Products
             .Include(p => p.Category)
             .Include(p => p.ProductReviews)
-            .ThenInclude(pr => pr.User.Name).FirstOrDefaultAsync(p => p.Id == id);
+            .ThenInclude(pr => pr.User).FirstOrDefaultAsync(p => p.Id == id);
         if (product == null) return NotFound(new { message = "Товар не найден" });
 
         return Ok(new ProductDetailsDto(
