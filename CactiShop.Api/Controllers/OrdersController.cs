@@ -38,6 +38,17 @@ public sealed class OrdersController(AppDbContext context) : ControllerBase
         return Ok(orders.Select(ToDto).ToList());
     }
 
+    [HttpGet(ApiRoutes.Orders.GetOrderPoints)]
+    public async Task<ActionResult<IReadOnlyList<CactiShop.Contracts.OrderPoints.OrderPointDto>>> GetOrderPoints(CancellationToken ct)
+    {
+        var points = await context.OrderPoints
+            .AsNoTracking()
+            .OrderBy(point => point.Address)
+            .Select(point => new CactiShop.Contracts.OrderPoints.OrderPointDto(point.Id, point.Address))
+            .ToListAsync(ct);
+        return Ok(points);
+    }
+
     [HttpPost]
     public async Task<ActionResult<int>> CreateOrder(CreateOrderDto dto, CancellationToken ct)
     {
