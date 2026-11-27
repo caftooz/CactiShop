@@ -1,25 +1,53 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace CactiShop.Api.Services;
 
+/// <summary>
+/// Password hashing with PBKDF2. Legacy SHA-256 hashes are verified during login
+/// and upgraded transparently after a successful authentication.
+/// </summary>
 public static class Encryptor
 {
+    private const int SaltSize = 16;
+    private const int HashSize = 32;
+    private const int Iterations = 210_000;
+    private const string VersionPrefix = "pbkdf2-sha256$";
+
     public static (string Hash, string Salt) HashPassword(string password)
     {
-        byte[] salt = RandomNumberGenerator.GetBytes(48);
-        return (Compute(password, salt), Convert.ToBase64String(salt));
+        ArgumentNullException.ThrowIfNull(password);
+        var salt = RandomNumberGenerator.GetBytes(SaltSize);
+        var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithmName.SHA256, HashSize);
+        return (Convert.ToBase64String(hash), VersionPrefix + Convert.ToBase64String(salt));
     }
 
     public static bool Verify(string password, string hash, string salt)
     {
-        var computed = Convert.FromBase64String(Compute(password, Convert.FromBase64String(salt)));
-        return CryptographicOperations.FixedTimeEquals(computed, Convert.FromBase64String(hash));
+        try
+        {
+            var isCurrent = salt.StartsWith(VersionPrefix, StringComparison.Ordinal);
+            var saltValue = isCurrent ? salt[VersionPrefix.Length..] : salt;
+            var saltBytes = Convert.FromBase64String(saltValue);
+            var expected = Convert.FromBase64String(hash);
+
+            var actual = isCurrent
+                ? Rfc2898DeriveBytes.Pbkdf2(password, saltBytes, Iterations, HashAlgorithmName.SHA256, expected.Length)
+                : SHA256.HashData(Encoding.UTF8.GetBytes(password).Concat(saltBytes).ToArray());
+
+            return actual.Length == expected.Length &&
+                   CryptographicOperations.FixedTimeEquals(actual, expected);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
     }
 
-    private static string Compute(string password, byte[] salt)
-    {
-        var bytes = Encoding.UTF8.GetBytes(password).Concat(salt).ToArray();
-        return Convert.ToBase64String(SHA256.HashData(bytes));
-    }
+    public static bool NeedsUpgrade(string salt) =>
+        !salt.StartsWith(VersionPrefix, StringComparison.Ordinal);
 }
