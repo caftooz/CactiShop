@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using CactiShop.Api.Data;
 using CactiShop.Api.Data.Models;
 using CactiShop.Contracts;
@@ -11,63 +11,66 @@ namespace CactiShop.Api.Controllers;
 
 [ApiController]
 [Authorize]
-public class CartController : ControllerBase
+public sealed class CartController(AppDbContext context) : ControllerBase
 {
-    private readonly AppDbContext _context;
-    public CartController(AppDbContext context)
-    {
-        _context = context;
-    }
-
     [HttpPatch(ApiRoutes.Cart.Items)]
-    public async Task<IActionResult> ChangeProductInCart(QuantityCartDto dto)
+    public async Task<IActionResult> ChangeProductInCart(QuantityCartDto dto, CancellationToken ct)
     {
+        if (dto.ProductId <= 0 || dto.NewQuantity < 0)
+            return BadRequest(new { message = "Товар и количество указаны некорректно." });
+
+        if (!TryGetUserId(out var userId))
+            return Unauthorized();
+
         if (dto.NewQuantity == 0)
-            return await DeleteCartProduct(dto.ProductId);
+            return await DeleteCartProduct(dto.ProductId, ct);
 
-        if (dto.NewQuantity < 0)
-            return BadRequest(new { message = "Количество товара в корзине не может быть меньше 1" });
+        var product = await context.Products
+            .FirstOrDefaultAsync(product => product.Id == dto.ProductId && product.IsActive, ct);
+        if (product is null)
+            return NotFound(new { message = "Товар не найден или недоступен." });
 
-        int userId = GetUserId();
-        CartItem? cartItem = await _context.CartItems.FirstOrDefaultAsync(ci => ci.ProductId == dto.ProductId && ci.UserId == userId);
-        if (cartItem != null)
+        if (dto.NewQuantity > product.Quantity)
+            return BadRequest(new { message = "Недостаточно товара на складе." });
+
+        var cartItem = await context.CartItems
+            .FirstOrDefaultAsync(item => item.ProductId == dto.ProductId && item.UserId == userId, ct);
+
+        if (cartItem is null)
+        {
+            context.CartItems.Add(new CartItem
+            {
+                UserId = userId,
+                ProductId = dto.ProductId,
+                Quantity = dto.NewQuantity
+            });
+        }
+        else
         {
             cartItem.Quantity = dto.NewQuantity;
-            await _context.SaveChangesAsync();
-            return Ok();
         }
 
-        if (!await _context.Users.AnyAsync(u => u.Id == userId))
-            return BadRequest(new { message = "Пользователь не найден" });
-        if (!await _context.Products.AnyAsync(p => p.Id == dto.ProductId))
-            return BadRequest(new { message = "Товар не найден" });
-
-        _context.CartItems.Add(new CartItem
-        {
-            UserId = userId,
-            ProductId = dto.ProductId,
-            Quantity = dto.NewQuantity
-        });
-
-        await _context.SaveChangesAsync();
-        return Ok();
-    }
-
-    [HttpDelete(ApiRoutes.Cart.ItemById)]
-    public async Task<IActionResult> DeleteCartProduct(int id)
-    {
-        var userId = GetUserId();
-
-        var cartItem = await _context.CartItems.FirstOrDefaultAsync(ci => ci.ProductId == id && ci.UserId == userId);
-
-        if (cartItem == null)
-            return BadRequest(new { message = "Товара нет в корзине" });
-
-        _context.CartItems.Remove(cartItem);
-        await _context.SaveChangesAsync();
-
+        await context.SaveChangesAsync(ct);
         return NoContent();
     }
 
-    private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    [HttpDelete(ApiRoutes.Cart.ItemById)]
+    public async Task<IActionResult> DeleteCartProduct(int productId, CancellationToken ct = default)
+    {
+        if (!TryGetUserId(out var userId))
+            return Unauthorized();
+
+        var cartItem = await context.CartItems
+            .FirstOrDefaultAsync(item => item.ProductId == productId && item.UserId == userId, ct);
+
+        if (cartItem is null)
+            return NotFound(new { message = "Товара нет в корзине." });
+
+        context.CartItems.Remove(cartItem);
+        await context.SaveChangesAsync(ct);
+        return NoContent();
+    }
+
+    private bool TryGetUserId(out int userId) =>
+        int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId);
 }
