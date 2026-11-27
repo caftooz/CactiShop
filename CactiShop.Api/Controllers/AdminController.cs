@@ -75,7 +75,7 @@ public class AdminController : ControllerBase
         };
         _context.Products.Add(product);
         await _context.SaveChangesAsync();
-        return Created();
+        return StatusCode(StatusCodes.Status201Created, new { id = product.Id });
     }
 
     [HttpPost(ApiRoutes.Admin.UploadImage)]
