@@ -33,7 +33,7 @@ internal sealed class OrderService(ApiClient apiClient) : IOrderService
 
     public async Task<object> ChangeOrderStatusAsync(int orderId, CancellationToken ct = default)
     {
-        await apiClient.SendAsync(HttpMethod.Patch, ApiRoutes.Orders.OrderById(orderId), cancellationToken: ct);
+        await apiClient.SendAsync(HttpMethod.Patch, ApiRoutes.Orders.OrderById(orderId), ct: ct);
         return true;
     }
 
