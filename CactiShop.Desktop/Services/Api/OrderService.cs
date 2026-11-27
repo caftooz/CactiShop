@@ -28,10 +28,8 @@ internal sealed class OrderService(ApiClient apiClient) : IOrderService
             .ToList();
     }
 
-    public Task<IReadOnlyList<OrderPointDto>> GetOrderPointsAsync(CancellationToken ct = default) =>
-        apiClient.GetAsync<List<OrderPointDto>>(ApiRoutes.Orders.GetOrderPoints, ct)
-            .ContinueWith<IReadOnlyList<OrderPointDto>>(task => task.GetAwaiter().GetResult(), ct,
-                TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+    public async Task<IReadOnlyList<OrderPointDto>> GetOrderPointsAsync(CancellationToken ct = default) =>
+        await apiClient.GetAsync<List<OrderPointDto>>(ApiRoutes.Orders.GetOrderPoints, ct);
 
     public async Task<object> ChangeOrderStatusAsync(int orderId, CancellationToken ct = default)
     {
