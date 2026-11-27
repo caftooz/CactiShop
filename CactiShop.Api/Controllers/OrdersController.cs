@@ -38,7 +38,7 @@ public sealed class OrdersController(AppDbContext context) : ControllerBase
         return Ok(orders.Select(ToDto).ToList());
     }
 
-    [HttpGet(ApiRoutes.Orders.GetOrderPoints)]
+    [HttpGet("order-points")]
     public async Task<ActionResult<IReadOnlyList<CactiShop.Contracts.OrderPoints.OrderPointDto>>> GetOrderPoints(CancellationToken ct)
     {
         var points = await context.OrderPoints
