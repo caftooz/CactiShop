@@ -1,4 +1,5 @@
-﻿using CactiShop.Contracts;
+using System.Net.Http;
+using CactiShop.Contracts;
 using CactiShop.Contracts.OrderPoints;
 using CactiShop.Contracts.Orders;
 using CactiShop.Desktop.Models;
@@ -6,17 +7,38 @@ using CactiShop.Desktop.Services.Interfaces;
 
 namespace CactiShop.Desktop.Services.Api;
 
-internal class OrderService(ApiClient _apiClient) : IOrderService
+internal sealed class OrderService(ApiClient apiClient) : IOrderService
 {
     public async Task<IReadOnlyList<Order>> GetUserOrdersAsync(bool? byDescending, CancellationToken ct = default)
     {
-        var dtos = await _apiClient.GetAsync<List<OrderDto>>(ApiRoutes.Orders.OrdersUser, ct);
-        return dtos.Select(d => new Order(d.Id, d.Status, d.OrderPoint, d.DeliveryAddress, d.Date, d.TotalPrice, d.OrderProducts.Select(op => new OrderProduct(op.ProductName, op.ProductPrice, op.ProductQuantity)))).ToList();
+        var url = ApiRoutes.Orders.OrdersUser;
+        if (byDescending.HasValue)
+            url += $"?descending={byDescending.Value.ToString().ToLowerInvariant()}";
+
+        var dtos = await apiClient.GetAsync<List<OrderDto>>(url, ct);
+        return dtos.Select(dto => new Order(
+            dto.Id,
+            dto.Status,
+            dto.OrderPoint,
+            dto.DeliveryAddress,
+            dto.Date,
+            dto.TotalPrice,
+            dto.OrderProducts.Select(item =>
+                new OrderProduct(item.ProductName, item.ProductPrice, item.ProductQuantity)).ToList()))
+            .ToList();
     }
-    public async Task<IReadOnlyList<OrderPointDto>> GetOrderPointsAsync(CancellationToken ct = default) =>
-        await _apiClient.GetAsync<List<OrderPointDto>>(ApiRoutes.Orders.GetOrderPoints, ct);
-    public async Task<object> ChangeOrderStatusAsync(int orderdId, CancellationToken ct = default) =>
-        await _apiClient.PatchAsync<object>(ApiRoutes.Orders.OrderById(orderdId), ct);
+
+    public Task<IReadOnlyList<OrderPointDto>> GetOrderPointsAsync(CancellationToken ct = default) =>
+        apiClient.GetAsync<List<OrderPointDto>>(ApiRoutes.Orders.GetOrderPoints, ct)
+            .ContinueWith<IReadOnlyList<OrderPointDto>>(task => task.GetAwaiter().GetResult(), ct,
+                TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
+    public async Task<object> ChangeOrderStatusAsync(int orderId, CancellationToken ct = default)
+    {
+        await apiClient.SendAsync(HttpMethod.Patch, ApiRoutes.Orders.OrderById(orderId), cancellationToken: ct);
+        return true;
+    }
+
     public async Task<int> CreateOrderAsync(CreateOrderDto dto, CancellationToken ct = default) =>
-        await _apiClient.PostAsync<int>(ApiRoutes.Orders.CreateOrder, ct);
+        await apiClient.PostAsync<int>(ApiRoutes.Orders.CreateOrder, dto, ct);
 }
