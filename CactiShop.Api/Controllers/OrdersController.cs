@@ -1,6 +1,7 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using CactiShop.Api.Data;
 using CactiShop.Api.Data.Models;
+using CactiShop.Contracts;
 using CactiShop.Contracts.Orders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,87 +12,125 @@ namespace CactiShop.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class OrdersController : ControllerBase
+public sealed class OrdersController(AppDbContext context) : ControllerBase
 {
-    private readonly AppDbContext _context;
-    public OrdersController(AppDbContext context)
-    {
-        _context = context;
-    }
-
     [HttpGet]
-    public async Task<IActionResult> GetUserOrders([FromBody] bool? byDesc)
+    public async Task<ActionResult<IReadOnlyList<OrderDto>>> GetUserOrders(
+        [FromQuery] bool? descending = true,
+        CancellationToken ct = default)
     {
-        int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var ordersQuery = _context.Orders.Include(o => o.OrderProducts).Where(p => p.Id == userId);
-        if (byDesc == null) return Ok(ordersQuery.Select(ToDto));
-        ordersQuery = byDesc == true ? ordersQuery.OrderByDescending(o => o.Date) : ordersQuery.OrderBy(o => o.Date);
-        return Ok(ordersQuery.Select(ToDto));
+        if (!TryGetUserId(out var userId))
+            return Unauthorized();
+
+        var query = context.Orders
+            .AsNoTracking()
+            .Where(order => order.UserId == userId)
+            .Include(order => order.Status)
+            .Include(order => order.OrderPoint)
+            .Include(order => order.OrderProducts)
+                .ThenInclude(item => item.Product);
+
+        query = descending == false
+            ? query.OrderBy(order => order.Date).ThenBy(order => order.Id)
+            : query.OrderByDescending(order => order.Date).ThenByDescending(order => order.Id);
+
+        var orders = await query.ToListAsync(ct);
+        return Ok(orders.Select(ToDto).ToList());
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateOrder(CreateOrderDto dto)
+    public async Task<ActionResult<int>> CreateOrder(CreateOrderDto dto, CancellationToken ct)
     {
-        if (dto.OrderProducts is null || !dto.OrderProducts.Any())
-            return BadRequest("Заказ не может быть пустым");
+        if (!TryGetUserId(out var userId))
+            return Unauthorized();
 
-        if (dto.OrderProducts.Any(p => p.ProductQuantity <= 0))
-            return BadRequest("Количество должно быть больше нуля");
-
-        var items = dto.OrderProducts
-            .GroupBy(p => p.ProductId)
-            .Select(g => new { ProductId = g.Key, Quantity = g.Sum(x => x.ProductQuantity) })
+        var requested = dto.OrderProducts?
+            .GroupBy(item => item.ProductId)
+            .Select(group => new { ProductId = group.Key, Quantity = group.Sum(item => item.ProductQuantity) })
             .ToList();
 
-        var productIds = dto.OrderProducts.Select(i => i.ProductId).ToList();
+        if (requested is null || requested.Count == 0)
+            return BadRequest(new { message = "Заказ не может быть пустым." });
 
-        var prices = await _context.Products
-            .Where(p => productIds.Contains(p.Id))
-            .ToDictionaryAsync(p => p.Id, p => p.Price);
+        if (requested.Any(item => item.ProductId <= 0 || item.Quantity <= 0))
+            return BadRequest(new { message = "Товары и их количество должны быть положительными." });
+
+        if (dto.OrderPointId is null && string.IsNullOrWhiteSpace(dto.DeliveryAddress))
+            return BadRequest(new { message = "Укажите пункт выдачи или адрес доставки." });
+
+        if (dto.OrderPointId is { } pointId &&
+            !await context.OrderPoints.AnyAsync(point => point.Id == pointId, ct))
+            return BadRequest(new { message = "Пункт выдачи не найден." });
+
+        var productIds = requested.Select(item => item.ProductId).ToArray();
+        var products = await context.Products
+            .Where(product => productIds.Contains(product.Id))
+            .ToDictionaryAsync(product => product.Id, ct);
+
+        if (products.Count != requested.Count)
+            return BadRequest(new { message = "Один или несколько товаров не найдены." });
+
+        foreach (var item in requested)
+        {
+            var product = products[item.ProductId];
+            if (!product.IsActive)
+                return BadRequest(new { message = $"Товар «{product.Name}» недоступен." });
+            if (product.Quantity < item.Quantity)
+                return BadRequest(new { message = $"Недостаточно товара «{product.Name}» на складе." });
+        }
 
         var order = new Order
         {
+            UserId = userId,
             OrderPointId = dto.OrderPointId,
-            DeliveryAddress = dto.DeliveryAddress,
-            UserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!),
+            DeliveryAddress = string.IsNullOrWhiteSpace(dto.DeliveryAddress) ? null : dto.DeliveryAddress.Trim(),
             StatusId = 1,
             Date = DateOnly.FromDateTime(DateTime.UtcNow),
-            OrderProducts = items.Select(op => new OrderProduct
+            OrderProducts = requested.Select(item =>
             {
-                ProductId = op.ProductId,
-                ProductQuantity = op.Quantity,
-                ProductPrice = prices[op.ProductId]
+                var product = products[item.ProductId];
+                product.Quantity -= item.Quantity;
+                return new OrderProduct
+                {
+                    ProductId = product.Id,
+                    ProductQuantity = item.Quantity,
+                    ProductPrice = product.Price
+                };
             }).ToList()
         };
-        _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
 
-        return Ok(order.Id);
+        context.Orders.Add(order);
+        await context.SaveChangesAsync(ct);
+        return CreatedAtAction(nameof(GetUserOrders), new { }, order.Id);
     }
+
     [HttpPatch("{id:int}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> ChangeOrderStatus(int id)
+    public async Task<IActionResult> AdvanceOrderStatus(int id, CancellationToken ct)
     {
-        var order = await _context.Orders.FindAsync(id);
-        if (order == null) { return NotFound(); }
+        var order = await context.Orders.FirstOrDefaultAsync(order => order.Id == id, ct);
+        if (order is null)
+            return NotFound(new { message = "Заказ не найден." });
 
-        int sId = order.StatusId;
+        // Statuses are seeded with IDs 1..6. The final state is not advanced.
+        if (order.StatusId >= 1 && order.StatusId < 5)
+            order.StatusId++;
 
-        order.StatusId = sId == 1 ? 2 : sId == 2 ? 1 : 1;
-
-        await _context.SaveChangesAsync();
-        return Ok();
+        await context.SaveChangesAsync(ct);
+        return NoContent();
     }
 
-    private OrderDto ToDto(Order o) =>
-        new OrderDto(
-            o.Id,
-            o.Status.Name,
-            o.OrderPoint?.Address,
-            o.DeliveryAddress,
-            o.Date,
-            o.TotalPrice,
-            o.OrderProducts.Select(op =>
-            new OrderProductsDto(op.Product.Name, op.ProductPrice, op.ProductQuantity))
-            );
+    private bool TryGetUserId(out int userId) =>
+        int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out userId);
+
+    private static OrderDto ToDto(Order order) =>
+        new(
+            order.Id,
+            order.Status.Name,
+            order.OrderPoint?.Address,
+            order.DeliveryAddress,
+            order.Date,
+            order.TotalPrice,
+            order.OrderProducts.Select(item =>
+                new OrderProductsDto(item.Product.Name, item.ProductPrice, item.ProductQuantity)).ToList());
 }
