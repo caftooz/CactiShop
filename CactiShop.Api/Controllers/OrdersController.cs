@@ -22,7 +22,7 @@ public sealed class OrdersController(AppDbContext context) : ControllerBase
         if (!TryGetUserId(out var userId))
             return Unauthorized();
 
-        var query = context.Orders
+        IQueryable<Order> query = context.Orders
             .AsNoTracking()
             .Where(order => order.UserId == userId)
             .Include(order => order.Status)
