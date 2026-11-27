@@ -30,7 +30,7 @@ public class CatalogService(ApiClient _apiClient) : ICatalogService
     {
         var parts = new List<string>();
         if (!string.IsNullOrWhiteSpace(f.Query))
-            parts.Add("search=" + Uri.EscapeDataString(f.Query.Trim()));
+            parts.Add("query=" + Uri.EscapeDataString(f.Query.Trim()));
         if (f.CategoryId is { } c)
             parts.Add("categoryId=" + c);
         if (f.MinPrice is { } min)
